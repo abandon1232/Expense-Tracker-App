@@ -458,6 +458,14 @@ select:focus {
 
 }
 
+.has-success .info-container {
+    color: var(--green);
+}
+
+.has-success {
+    box-shadow: 0 0 0 2px var(--green);
+}
+
 /* edit money card ends here  */
 
 .mobile-add-btn {

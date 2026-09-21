@@ -72,7 +72,19 @@ function showInfo(ele, txt = "") {
 function hideInfo(ele) {
   ele.textContent = "";
   ele.parentElement.style.display = "none";
-  ele.closest(".add-money-card, .edit-money-card")?.classList.remove("has-error");
+  ele.closest(".add-money-card, .edit-money-card")?.classList.remove("has-error", "has-success");
+}
+function showSuccess(ele, txt) {
+  const card = ele.closest(".add-money-card, .edit-money-card");
+  ele.parentElement.style.display = "flex";
+  ele.textContent = txt;
+  card?.classList.remove("has-error");
+  card?.classList.add("has-success");
+  setTimeout(() => {
+    if (ele.textContent === txt) {
+      hideInfo(ele);
+    }
+  }, 2500);
 }
 
 function addBudgetInput() {
@@ -245,7 +257,7 @@ function addTransItem() {
     renderTransHistory(localStorage.getAllTrans());
     addTranBtnEvent();
     totalCalculate();
-    hideInfo(addAmountCardInfo);
+    showSuccess(addAmountCardInfo, "Expense added.");
   } else {
     if (amount == "" || Number(amount) <= 0) {
       showInfo(addAmountCardInfo, "Please enter proper amount.");
@@ -313,7 +325,12 @@ function editTran() {
     totalCalculate();
     editAmountEle.value = "";
     editTagEle.value = "";
-    hideInfo(editCardInfo);
+    showSuccess(editCardInfo, "Expense updated.");
+    setTimeout(() => {
+      editCardEle.style.display = "none";
+      hideInfo(editCardInfo);
+    }, 1200);
+    return;
   } else {
     showInfo(editCardInfo, "Please enter proper value.");
   }
