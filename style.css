@@ -47,10 +47,22 @@ button {
     border: none;
     cursor: pointer;
     font-weight: 500;
+    transition: opacity 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
 }
 
 button:hover {
     opacity: 0.7;
+}
+
+button:active {
+    transform: translateY(1px);
+}
+
+button:focus-visible,
+input:focus-visible,
+select:focus-visible {
+    outline: 3px solid var(--yellow);
+    outline-offset: 2px;
 }
 
 .show {
@@ -232,8 +244,22 @@ input[type="text"] {
     padding: 5px 10px;
     height: 35px;
     border: none;
-    outline-color: var(--blue);
+    outline: none;
     border-radius: 5px;
+    box-shadow: 0 0 0 0 transparent;
+    transition: box-shadow 0.2s ease, background-color 0.2s ease;
+}
+
+input[type="number"]:focus,
+input[type="text"]:focus,
+select:focus {
+    box-shadow: 0 0 0 3px var(--blue);
+}
+
+.has-error input[type="number"],
+.has-error input[type="text"] {
+    box-shadow: 0 0 0 2px var(--red);
+    background-color: #fff5f5;
 }
 
 .exp-for {
@@ -259,6 +285,11 @@ input[type="text"] {
 
 .exp-for label:hover {
     background-color: var(--yellow);
+}
+
+.exp-for label:active,
+.exp-for button:active {
+    transform: scale(0.97);
 }
 
 .add-money-card .add-money-card-btn {

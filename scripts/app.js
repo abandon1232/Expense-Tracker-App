@@ -67,10 +67,12 @@ totalCalculate();
 function showInfo(ele, txt = "") {
   ele.parentElement.style.display = "flex";
   ele.textContent = txt;
+  ele.closest(".add-money-card, .edit-money-card")?.classList.add("has-error");
 }
 function hideInfo(ele) {
   ele.textContent = "";
   ele.parentElement.style.display = "none";
+  ele.closest(".add-money-card, .edit-money-card")?.classList.remove("has-error");
 }
 
 function addBudgetInput() {
@@ -253,9 +255,11 @@ function addTransItem() {
   }
 
   amountEle.value = "";
-  checkedTag.checked = false;
-  const checkedLabel = document.querySelector(`[for="${checkedTag.id}"]`);
-  checkedLabel.style.backgroundColor = colors.lightBlue;
+  if (checkedTag) {
+    checkedTag.checked = false;
+    const checkedLabel = document.querySelector(`[for="${checkedTag.id}"]`);
+    checkedLabel.style.backgroundColor = colors.lightBlue;
+  }
 }
 
 function clearInputForm() {
