@@ -52,18 +52,31 @@
 
 
             <div class="display-cards">
-
+                
                 <!-- money left card  -->
                 <div class="money-left-card">
                     <div class="card-text-container">
-                        <p>Buget Left</p>
-                        <h1>₹<span id="budgetLeft">0</span></h1>
+                        <p>Budget Left</p>
+                        <h1>
+                            <select class="currency-selector" id="currencySelector">
+                                <option value="€">€</option>
+                                <option value="kr">kr</option>
+                                <option value="¥">¥</option>
+                                <option value="$">$</option>
+                                <option value="£">£</option>
+                                <option value="₹">₹</option>
+                                <option value="₱">₱</option>
+                                <option value="₽">₽</option>
+                                <option value="₪">₪</option>
+                                <option value="₩">₩</option>
+                                <option value="zł">zł</option>
+                            </select><span id="budgetLeft">0</span>
+                        </h1>
                     </div>
                     <div class="chart-container">
                         <canvas id="myChart"></canvas>
                     </div>
                 </div>
-
 
                 <!-- total money cards  -->
                 <div class="budg-exp-container">
@@ -71,14 +84,14 @@
                     <div class="total-card total-budget">
                         <p>Total Budget</p>
                         <div>
-                            <h4>₹<span id="totalBudget">0</span></h4>
+                            <h4><span name="currency"></span><span id="totalBudget">0</span></h4>
                         </div>
                     </div>
 
                     <div class="total-card total-exp">
                         <p>Total Expense</p>
                         <div>
-                            <h4>₹<span id="totalExp">0</span></h4>
+                            <h4><span name="currency"></span><span id="totalExp">0</span></h4>
                         </div>
                     </div>
                 </div>

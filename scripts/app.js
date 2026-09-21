@@ -15,6 +15,16 @@ let totalExpData, totalBudgetLeftData;
 // ---------------------------------refrense of html element here---------------------------
 const ctx = document.getElementById("myChart");
 const budgetLeftEle = document.getElementById("budgetLeft");
+
+const currencyEles = document.getElementsByName("currency");
+const currencySelectorEle = document.getElementById("currencySelector");
+function changeCurrency(){
+  for (const currencyEle of currencyEles) {
+    currencyEle.textContent = currencySelectorEle.value;
+  }
+  localStorage.saveCurrency(currencySelectorEle.value);
+}
+
 const totalBudgetEle = document.getElementById("totalBudget");
 const totalExpEle = document.getElementById("totalExp");
 const addExpBtnEle = document.querySelector(".add-exp-btn");
@@ -45,6 +55,8 @@ const addAmountCardInfo = document.querySelector(".add-money-card .info");
 const editCardInfo = document.querySelector(".edit-money-card .info");
 
 // -----------------------------code logic here --------------------------------
+
+currencySelectorEle.value = localStorage.loadCurrency();
 
 function totalCalculate() {
   const allTrans = localStorage.getAllTrans();
@@ -102,7 +114,7 @@ const showExpInput = () => {
 function createTranHTML(obj = {}) {
   return `<div class="trans-item" id="${obj?.id}">
   <div>
-      <h4>-₹${obj?.amount}</h4>
+      <h4>-<span name="currency"></span>${obj?.amount}</h4>
       <div class="tranTagContainer">
         <p>${obj?.tag}</p>
         <p class="trans-date">${new Date(obj?.time).toLocaleString()}</p>
@@ -170,9 +182,11 @@ function renderTransHistory(transArr = []) {
       transHistoryParentEle.insertAdjacentHTML("beforeend", transEle);
     });
   }
+  changeCurrency();
 }
 
 renderTransHistory(localStorage.getAllTrans());
+
 
 function showChart(arr = []) {
   new Chart(ctx, {
@@ -366,6 +380,7 @@ addNewTagBtnEle.addEventListener("click", () => {
 
 confirmTagBtnEle.addEventListener("click", addNewTag);
 sortTransSelectEle.addEventListener("change", sortTrans);
+currencySelectorEle.addEventListener("change", changeCurrency)
 
 addTranBtnEvent();
 showChart([totalExpData, totalBudgetLeftData >= 0 ? totalBudgetLeftData : 0]);

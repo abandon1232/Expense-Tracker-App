@@ -1,5 +1,14 @@
 export default class display {
     
+    static loadCurrency(){
+        const currency = localStorage.getItem("currency") || "€";
+        return currency;
+    }
+
+    static saveCurrency(new_currency){
+        localStorage.setItem("currency", new_currency);
+    }
+
     static getTotalBudget (){
         const totalBudget = localStorage.getItem("totalBudget") || "0";
         return totalBudget;
@@ -47,7 +56,7 @@ export default class display {
         const allTags  = localStorage.getItem("tags") || "[]";
         return JSON.parse(allTags);
     }
-    
+
     static saveTag (str){
         const allTags = display.getAllTags();
         const exiting = allTags.find(tag => tag == str);
