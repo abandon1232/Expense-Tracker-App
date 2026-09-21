@@ -638,3 +638,34 @@ select:focus {
     }
 
 }
+
+@media screen and (max-width: 420px) {
+    .money-left-card {
+        min-height: 220px;
+        height: auto;
+        padding: 16px;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+    }
+
+    .money-left-card .card-text-container {
+        width: 100%;
+        align-items: center;
+    }
+
+    .money-left-card p {
+        font-size: 1rem;
+    }
+
+    .money-left-card h1 {
+        font-size: 2.2rem;
+    }
+
+    .chart-container {
+        width: 100px;
+        height: 85px;
+        max-width: none;
+    }
+}
