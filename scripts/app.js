@@ -11,6 +11,7 @@ const colors = {
 };
 
 let totalExpData, totalBudgetLeftData;
+let expenseChart;
 
 // ---------------------------------refrense of html element here---------------------------
 const ctx = document.getElementById("myChart");
@@ -58,6 +59,7 @@ function totalCalculate() {
   totalBudgetLeftData = leftBudget;
   budgetLeftEle.textContent = `${leftBudget}`;
   totalBudgetEle.textContent = localStorage.getTotalBudget();
+  updateChart();
 }
 
 totalCalculate();
@@ -173,14 +175,29 @@ function renderTransHistory(transArr = []) {
 
 renderTransHistory(localStorage.getAllTrans());
 
-function showChart(arr = []) {
-  new Chart(ctx, {
+function updateChart() {
+  if (!expenseChart) {
+    return;
+  }
+
+  expenseChart.data.datasets[0].data = [
+    totalExpData,
+    totalBudgetLeftData >= 0 ? totalBudgetLeftData : 0,
+  ];
+  expenseChart.update();
+}
+
+function showChart() {
+  expenseChart = new Chart(ctx, {
     type: "pie",
     data: {
       labels: ["Expence", "Buget Left"],
       datasets: [
         {
-          data: arr,
+          data: [
+            totalExpData,
+            totalBudgetLeftData >= 0 ? totalBudgetLeftData : 0,
+          ],
           backgroundColor: [colors.red, colors.green],
           borderWidth: 0,
         },
@@ -366,4 +383,4 @@ confirmTagBtnEle.addEventListener("click", addNewTag);
 sortTransSelectEle.addEventListener("change", sortTrans);
 
 addTranBtnEvent();
-showChart([totalExpData, totalBudgetLeftData >= 0 ? totalBudgetLeftData : 0]);
+showChart();
