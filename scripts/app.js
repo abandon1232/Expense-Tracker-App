@@ -117,6 +117,7 @@ function createTranHTML(obj = {}) {
 }
 
 localStorage.saveTag("Manik👨‍💻");
+localStorage.saveTag("Misc.");    // Default for transactions without a tag
 
 function createTagHTML(str) {
   return `
@@ -213,9 +214,10 @@ function addTransItem() {
     Array.from(document.querySelectorAll('[name="expFor"]'))
   );
   const amount = amountEle.value;
-  const checkedTagValue = checkedTag ? checkedTag.value : undefined;
+  // If a tag is selected -> grab value, if not assign "Misc." tag
+  const checkedTagValue = checkedTag ? checkedTag.value : "Misc.";
 
-  if (amount && checkedTagValue && Number(amount) > 0) {
+  if (amount && Number(amount) > 0) {
     let transObj = {
       id: Math.floor(Math.random() * 10000000),
       amount: Number(amount),

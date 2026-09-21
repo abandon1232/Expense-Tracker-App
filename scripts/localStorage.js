@@ -47,7 +47,7 @@ export default class display {
         const allTags  = localStorage.getItem("tags") || "[]";
         return JSON.parse(allTags);
     }
-
+    
     static saveTag (str){
         const allTags = display.getAllTags();
         const exiting = allTags.find(tag => tag == str);
