@@ -11,6 +11,7 @@ const colors = {
 };
 
 let totalExpData, totalBudgetLeftData;
+let expenseChart;
 
 // ---------------------------------refrense of html element here---------------------------
 const ctx = document.getElementById("myChart");
@@ -58,6 +59,7 @@ function totalCalculate() {
   totalBudgetLeftData = leftBudget;
   budgetLeftEle.textContent = `${leftBudget}`;
   totalBudgetEle.textContent = localStorage.getTotalBudget();
+  updateChart();
 }
 
 totalCalculate();
@@ -65,10 +67,24 @@ totalCalculate();
 function showInfo(ele, txt = "") {
   ele.parentElement.style.display = "flex";
   ele.textContent = txt;
+  ele.closest(".add-money-card, .edit-money-card")?.classList.add("has-error");
 }
 function hideInfo(ele) {
   ele.textContent = "";
   ele.parentElement.style.display = "none";
+  ele.closest(".add-money-card, .edit-money-card")?.classList.remove("has-error", "has-success");
+}
+function showSuccess(ele, txt) {
+  const card = ele.closest(".add-money-card, .edit-money-card");
+  ele.parentElement.style.display = "flex";
+  ele.textContent = txt;
+  card?.classList.remove("has-error");
+  card?.classList.add("has-success");
+  setTimeout(() => {
+    if (ele.textContent === txt) {
+      hideInfo(ele);
+    }
+  }, 2500);
 }
 
 function addBudgetInput() {
@@ -173,20 +189,37 @@ function renderTransHistory(transArr = []) {
 
 renderTransHistory(localStorage.getAllTrans());
 
-function showChart(arr = []) {
-  new Chart(ctx, {
+function updateChart() {
+  if (!expenseChart) {
+    return;
+  }
+
+  expenseChart.data.datasets[0].data = [
+    totalExpData,
+    totalBudgetLeftData >= 0 ? totalBudgetLeftData : 0,
+  ];
+  expenseChart.update();
+}
+
+function showChart() {
+  expenseChart = new Chart(ctx, {
     type: "pie",
     data: {
       labels: ["Expence", "Buget Left"],
       datasets: [
         {
-          data: arr,
+          data: [
+            totalExpData,
+            totalBudgetLeftData >= 0 ? totalBudgetLeftData : 0,
+          ],
           backgroundColor: [colors.red, colors.green],
           borderWidth: 0,
         },
       ],
     },
     options: {
+      responsive: true,
+      maintainAspectRatio: false,
       plugins: {
         legend: {
           display: false,
@@ -226,7 +259,7 @@ function addTransItem() {
     renderTransHistory(localStorage.getAllTrans());
     addTranBtnEvent();
     totalCalculate();
-    hideInfo(addAmountCardInfo);
+    showSuccess(addAmountCardInfo, "Expense added.");
   } else {
     if (amount == "" || Number(amount) <= 0) {
       showInfo(addAmountCardInfo, "Please enter proper amount.");
@@ -236,9 +269,11 @@ function addTransItem() {
   }
 
   amountEle.value = "";
-  checkedTag.checked = false;
-  const checkedLabel = document.querySelector(`[for="${checkedTag.id}"]`);
-  checkedLabel.style.backgroundColor = colors.lightBlue;
+  if (checkedTag) {
+    checkedTag.checked = false;
+    const checkedLabel = document.querySelector(`[for="${checkedTag.id}"]`);
+    checkedLabel.style.backgroundColor = colors.lightBlue;
+  }
 }
 
 function clearInputForm() {
@@ -292,7 +327,12 @@ function editTran() {
     totalCalculate();
     editAmountEle.value = "";
     editTagEle.value = "";
-    hideInfo(editCardInfo);
+    showSuccess(editCardInfo, "Expense updated.");
+    setTimeout(() => {
+      editCardEle.style.display = "none";
+      hideInfo(editCardInfo);
+    }, 1200);
+    return;
   } else {
     showInfo(editCardInfo, "Please enter proper value.");
   }
@@ -366,4 +406,4 @@ confirmTagBtnEle.addEventListener("click", addNewTag);
 sortTransSelectEle.addEventListener("change", sortTrans);
 
 addTranBtnEvent();
-showChart([totalExpData, totalBudgetLeftData >= 0 ? totalBudgetLeftData : 0]);
+showChart();
