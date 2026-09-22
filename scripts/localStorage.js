@@ -1,7 +1,7 @@
 export default class display {
     
     static loadCurrency(){
-        const currency = localStorage.getItem("currency") || "€";
+        const currency = localStorage.getItem("currency") || "¤";
         return currency;
     }
 
