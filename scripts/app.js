@@ -16,6 +16,16 @@ let expenseChart;
 // ---------------------------------refrense of html element here---------------------------
 const ctx = document.getElementById("myChart");
 const budgetLeftEle = document.getElementById("budgetLeft");
+
+const currencyEles = document.getElementsByName("currency");
+const currencySelectorEle = document.getElementById("currencySelector");
+function changeCurrency(){
+  for (const currencyEle of currencyEles) {
+    currencyEle.textContent = currencySelectorEle.value;
+  }
+  localStorage.saveCurrency(currencySelectorEle.value);
+}
+
 const totalBudgetEle = document.getElementById("totalBudget");
 const totalExpEle = document.getElementById("totalExp");
 const addExpBtnEle = document.querySelector(".add-exp-btn");
@@ -46,6 +56,8 @@ const addAmountCardInfo = document.querySelector(".add-money-card .info");
 const editCardInfo = document.querySelector(".edit-money-card .info");
 
 // -----------------------------code logic here --------------------------------
+
+currencySelectorEle.value = localStorage.loadCurrency();
 
 function totalCalculate() {
   const allTrans = localStorage.getAllTrans();
@@ -118,7 +130,7 @@ const showExpInput = () => {
 function createTranHTML(obj = {}) {
   return `<div class="trans-item" id="${obj?.id}">
   <div>
-      <h4>-₹${obj?.amount}</h4>
+      <h4>-<span name="currency"></span>${obj?.amount}</h4>
       <div class="tranTagContainer">
         <p>${obj?.tag}</p>
         <p class="trans-date">${new Date(obj?.time).toLocaleString()}</p>
@@ -133,6 +145,7 @@ function createTranHTML(obj = {}) {
 }
 
 localStorage.saveTag("Manik👨‍💻");
+localStorage.saveTag("Misc.");    // Default for transactions without a tag
 
 function createTagHTML(str) {
   return `
@@ -185,6 +198,7 @@ function renderTransHistory(transArr = []) {
       transHistoryParentEle.insertAdjacentHTML("beforeend", transEle);
     });
   }
+  changeCurrency();
 }
 
 renderTransHistory(localStorage.getAllTrans());
@@ -246,9 +260,10 @@ function addTransItem() {
     Array.from(document.querySelectorAll('[name="expFor"]'))
   );
   const amount = amountEle.value;
-  const checkedTagValue = checkedTag ? checkedTag.value : undefined;
+  // If a tag is selected -> grab value, if not assign "Misc." tag
+  const checkedTagValue = checkedTag ? checkedTag.value : "Misc.";
 
-  if (amount && checkedTagValue && Number(amount) > 0) {
+  if (amount && Number(amount) > 0) {
     let transObj = {
       id: Math.floor(Math.random() * 10000000),
       amount: Number(amount),
@@ -404,6 +419,7 @@ addNewTagBtnEle.addEventListener("click", () => {
 
 confirmTagBtnEle.addEventListener("click", addNewTag);
 sortTransSelectEle.addEventListener("change", sortTrans);
+currencySelectorEle.addEventListener("change", changeCurrency)
 
 addTranBtnEvent();
 showChart();
