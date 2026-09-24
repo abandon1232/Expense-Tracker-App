@@ -141,8 +141,8 @@ function createTranHTML(obj = {}) {
   </div>
   <p class="trans-date">${new Date(obj?.time).toLocaleString()}</p>
   <div class="trans-item-btn">
-      <button id="transEdit"><i class="fa-regular fa-pen-to-square"></i></button>
-      <button id="transDelete"><i class="fa-regular fa-trash-can"></i></button>
+      <button id="transEdit" aria-label="Edit expense"><i class="fa-regular fa-pen-to-square" aria-hidden="true"></i></button>
+      <button id="transDelete" aria-label="Delete expense"><i class="fa-regular fa-trash-can" aria-hidden="true"></i></button>
   </div>
   </div>`;
 }
