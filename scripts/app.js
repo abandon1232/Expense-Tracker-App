@@ -13,7 +13,7 @@ const colors = {
 let totalExpData, totalBudgetLeftData;
 let expenseChart;
 
-// ---------------------------------refrense of html element here---------------------------
+// ---------------------------------reference of html element here---------------------------
 const ctx = document.getElementById("myChart");
 const budgetLeftEle = document.getElementById("budgetLeft");
 
@@ -31,8 +31,8 @@ const totalExpEle = document.getElementById("totalExp");
 const addExpBtnEle = document.querySelector(".add-exp-btn");
 const addBudBtnEle = document.querySelector(".add-bud-btn");
 const expForSelectEle = document.querySelector(".exp-for");
-const tagContainer = document.querySelector(".tags-conatiner");
-let allOptionLabel = document.querySelectorAll(".tags-conatiner label");
+const tagContainer = document.querySelector(".tags-container");
+let allOptionLabel = document.querySelectorAll(".tags-container label");
 const addBtnEle = document.getElementById("addBtn");
 const clearBtnEle = document.getElementById("clearBtn");
 const transAmountEle = document.getElementById("addAmount");
@@ -219,7 +219,7 @@ function showChart() {
   expenseChart = new Chart(ctx, {
     type: "pie",
     data: {
-      labels: ["Expence", "Buget Left"],
+      labels: ["Expense", "Budget Left"],
       datasets: [
         {
           data: [
@@ -243,7 +243,7 @@ function showChart() {
   });
 }
 
-function findChekedTag(arr) {
+function findCheckedTag(arr) {
   let checkedTag = undefined;
   arr.forEach((tag) => {
     if (tag.checked) {
@@ -256,7 +256,7 @@ function findChekedTag(arr) {
 
 function addTransItem() {
   const amountEle = document.getElementById("addAmount");
-  const checkedTag = findChekedTag(
+  const checkedTag = findCheckedTag(
     Array.from(document.querySelectorAll('[name="expFor"]'))
   );
   const amount = amountEle.value;
@@ -277,7 +277,7 @@ function addTransItem() {
     showSuccess(addAmountCardInfo, "Expense added.");
   } else {
     if (amount == "" || Number(amount) <= 0) {
-      showInfo(addAmountCardInfo, "Please enter proper amount.");
+      showInfo(addAmountCardInfo, "Please enter a valid amount.");
     } else if (checkedTagValue == undefined) {
       showInfo(addAmountCardInfo, "Please select a tag.");
     }
@@ -296,7 +296,7 @@ function clearInputForm() {
   Array.from(document.querySelectorAll('[name="expFor"]')).forEach((input) => {
     input.checked = false;
   });
-  document.querySelectorAll(".tags-conatiner label").forEach((label) => {
+  document.querySelectorAll(".tags-container label").forEach((label) => {
     label.style.backgroundColor = `${colors.lightBlue}`;
   });
   hideInfo(addAmountCardInfo);
@@ -305,7 +305,7 @@ function clearInputForm() {
 function addTranBtnEvent() {
   document.querySelectorAll(".trans-item").forEach((item) => {
     item.lastElementChild.lastElementChild.addEventListener("click", () => {
-      const sure = window.confirm("Are you really wanna delete this?");
+      const sure = window.confirm("Are you sure you want to delete this expense?");
       if (sure) {
         localStorage.deleteTrans(item.id);
         renderTransHistory(localStorage.getAllTrans());
@@ -349,7 +349,7 @@ function editTran() {
     }, 1200);
     return;
   } else {
-    showInfo(editCardInfo, "Please enter proper value.");
+    showInfo(editCardInfo, "Please enter valid values.");
   }
 
   editCardEle.style.display = "none";
