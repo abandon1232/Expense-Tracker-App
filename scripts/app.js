@@ -100,16 +100,18 @@ function showSuccess(ele, txt) {
 }
 
 function addBudgetInput() {
-  if (transAmountEle.value == "") {
-    showInfo(addAmountCardInfo, "Please enter budget amount.");
-  } else {
-    localStorage.setTotalBudget(Number(transAmountEle.value));
-    totalCalculate();
-    hideInfo(addAmountCardInfo);
+  if (!transAmountEle.checkValidity()) {
+    showInfo(addAmountCardInfo, "Please enter a valid budget amount.");
+    return;
   }
+
+  localStorage.setTotalBudget(Number(transAmountEle.value));
+  totalCalculate();
+  hideInfo(addAmountCardInfo);
 }
 
 const showBudgetInput = () => {
+  hideInfo(addAmountCardInfo);
   addExpBtnEle.classList.remove("selected-add-exp");
   addBudBtnEle.classList.add("selected-add-bud");
   expForSelectEle.style.display = "none";
@@ -119,6 +121,7 @@ const showBudgetInput = () => {
 };
 
 const showExpInput = () => {
+  hideInfo(addAmountCardInfo);
   addBudBtnEle.classList.remove("selected-add-bud");
   addExpBtnEle.classList.add("selected-add-exp");
   expForSelectEle.style.display = "flex";
@@ -179,13 +182,25 @@ function renderTags() {
 renderTags();
 
 function addNewTag() {
-  const tagValue = tagInputField.value;
-  if (tagValue != "") {
-    localStorage.saveTag(tagValue);
-    renderTags();
+  const tagValue = tagInputField.value.trim();
+  if (!tagValue) {
+    showInfo(addAmountCardInfo, "Please enter a tag.");
+    return;
   }
+  if (
+    localStorage
+      .getAllTags()
+      .some((tag) => tag.toLowerCase() === tagValue.toLowerCase())
+  ) {
+    showInfo(addAmountCardInfo, "Tag already exists.");
+    return;
+  }
+
+  localStorage.saveTag(tagValue);
+  renderTags();
   tagInputField.value = "";
   tagInputEle.classList.remove("show");
+  hideInfo(addAmountCardInfo);
 }
 
 function renderTransHistory(transArr = []) {
@@ -259,29 +274,25 @@ function addTransItem() {
   const checkedTag = findCheckedTag(
     Array.from(document.querySelectorAll('[name="expFor"]'))
   );
-  const amount = amountEle.value;
   // If a tag is selected -> grab value, if not assign "Misc." tag
   const checkedTagValue = checkedTag ? checkedTag.value : "Misc.";
 
-  if (amount && Number(amount) > 0) {
-    let transObj = {
-      id: Math.floor(Math.random() * 10000000),
-      amount: Number(amount),
-      tag: checkedTagValue,
-      time: new Date().toISOString(),
-    };
-    localStorage.saveTrans(transObj);
-    renderTransHistory(localStorage.getAllTrans());
-    addTranBtnEvent();
-    totalCalculate();
-    showSuccess(addAmountCardInfo, "Expense added.");
-  } else {
-    if (amount == "" || Number(amount) <= 0) {
-      showInfo(addAmountCardInfo, "Please enter a valid amount.");
-    } else if (checkedTagValue == undefined) {
-      showInfo(addAmountCardInfo, "Please select a tag.");
-    }
+  if (!amountEle.checkValidity()) {
+    showInfo(addAmountCardInfo, "Please enter a valid amount.");
+    return;
   }
+
+  const transObj = {
+    id: Math.floor(Math.random() * 10000000),
+    amount: Number(amountEle.value),
+    tag: checkedTagValue,
+    time: new Date().toISOString(),
+  };
+  localStorage.saveTrans(transObj);
+  renderTransHistory(localStorage.getAllTrans());
+  addTranBtnEvent();
+  totalCalculate();
+  showSuccess(addAmountCardInfo, "Expense added.");
 
   amountEle.value = "";
   if (checkedTag) {
@@ -326,33 +337,33 @@ function addTranBtnEvent() {
 }
 
 function editTran() {
-  if (
-    editAmountEle.value != "" &&
-    Number(editAmountEle.value) > 0 &&
-    editTagEle.value != ""
-  ) {
-    const transObj = {
-      id: Number(editCardEle.id),
-      amount: Number(editAmountEle.value),
-      tag: editTagEle.value,
-    };
-    localStorage.saveTrans(transObj);
-    renderTransHistory(localStorage.getAllTrans());
-    addTranBtnEvent();
-    totalCalculate();
-    editAmountEle.value = "";
-    editTagEle.value = "";
-    showSuccess(editCardInfo, "Expense updated.");
-    setTimeout(() => {
-      editCardEle.style.display = "none";
-      hideInfo(editCardInfo);
-    }, 1200);
+  if (!editAmountEle.checkValidity()) {
+    showInfo(editCardInfo, "Please enter a valid amount.");
     return;
-  } else {
-    showInfo(editCardInfo, "Please enter valid values.");
   }
 
-  editCardEle.style.display = "none";
+  const tagValue = editTagEle.value.trim();
+  if (!tagValue) {
+    showInfo(editCardInfo, "Please enter a tag.");
+    return;
+  }
+
+  const transObj = {
+    id: Number(editCardEle.id),
+    amount: Number(editAmountEle.value),
+    tag: tagValue,
+  };
+  localStorage.saveTrans(transObj);
+  renderTransHistory(localStorage.getAllTrans());
+  addTranBtnEvent();
+  totalCalculate();
+  editAmountEle.value = "";
+  editTagEle.value = "";
+  showSuccess(editCardInfo, "Expense updated.");
+  setTimeout(() => {
+    editCardEle.style.display = "none";
+    hideInfo(editCardInfo);
+  }, 1200);
 }
 
 const sortTransHelper = (arr = [], sortTypeNum) => {

@@ -26,11 +26,12 @@
         <div class="edit-form-container">
             <div class="flex-col edit-amount">
                 <label for="editAmount">Amount</label>
-                <input type="number" min="0" name="amount" id="editAmount">
+                <input type="text" inputmode="decimal" name="amount" id="editAmount" required
+                    pattern="(?:[1-9]\d*(?:\.\d+)?|0\.\d+)">
             </div>
             <div class="exp-for-edit flex-col">
                 <label for="tagName">Tag Name</label>
-                <input type="text" minlength="25" id="tagName">
+                <input type="text" maxlength="20" id="tagName" required>
             </div>
         </div>
         <div class="info-container"><i class="fa-solid fa-circle-info"></i>
@@ -111,7 +112,8 @@
                 <div class="form-container">
                     <div class="flex-col add-amount">
                         <label for="addAmount">Amount</label>
-                        <input type="number" min="0" name="amount" id="addAmount">
+                        <input type="text" inputmode="decimal" name="amount" id="addAmount" required
+                            pattern="(?:[1-9]\d*(?:\.\d+)?|0\.\d+)">
                     </div>
 
                     <div class="exp-for">
@@ -124,7 +126,7 @@
                             <label for="subscription">Subscription📱</label>
                         </div>
                         <div class="tag-input">
-                            <input type="text" name="" maxlength="20" id="tagInputField">
+                            <input type="text" name="" maxlength="20" id="tagInputField" required>
                             <button id="confirmNewTag"><i class="fa-solid fa-check"></i></button>
                         </div>
                         <button id="addTagBtn">
