@@ -13,7 +13,7 @@ const colors = {
 let totalExpData, totalBudgetLeftData;
 let expenseChart;
 
-// ---------------------------------refrense of html element here---------------------------
+// ---------------------------------reference of html element here---------------------------
 const ctx = document.getElementById("myChart");
 const budgetLeftEle = document.getElementById("budgetLeft");
 
@@ -31,8 +31,8 @@ const totalExpEle = document.getElementById("totalExp");
 const addExpBtnEle = document.querySelector(".add-exp-btn");
 const addBudBtnEle = document.querySelector(".add-bud-btn");
 const expForSelectEle = document.querySelector(".exp-for");
-const tagContainer = document.querySelector(".tags-conatiner");
-let allOptionLabel = document.querySelectorAll(".tags-conatiner label");
+const tagContainer = document.querySelector(".tags-container");
+let allOptionLabel = document.querySelectorAll(".tags-container label");
 const addBtnEle = document.getElementById("addBtn");
 const clearBtnEle = document.getElementById("clearBtn");
 const transAmountEle = document.getElementById("addAmount");
@@ -100,16 +100,18 @@ function showSuccess(ele, txt) {
 }
 
 function addBudgetInput() {
-  if (transAmountEle.value == "") {
-    showInfo(addAmountCardInfo, "Please enter budget amount.");
-  } else {
-    localStorage.setTotalBudget(Number(transAmountEle.value));
-    totalCalculate();
-    hideInfo(addAmountCardInfo);
+  if (!transAmountEle.checkValidity()) {
+    showInfo(addAmountCardInfo, "Please enter a valid budget amount.");
+    return;
   }
+
+  localStorage.setTotalBudget(Number(transAmountEle.value));
+  totalCalculate();
+  hideInfo(addAmountCardInfo);
 }
 
 const showBudgetInput = () => {
+  hideInfo(addAmountCardInfo);
   addExpBtnEle.classList.remove("selected-add-exp");
   addBudBtnEle.classList.add("selected-add-bud");
   expForSelectEle.style.display = "none";
@@ -119,6 +121,7 @@ const showBudgetInput = () => {
 };
 
 const showExpInput = () => {
+  hideInfo(addAmountCardInfo);
   addBudBtnEle.classList.remove("selected-add-bud");
   addExpBtnEle.classList.add("selected-add-exp");
   expForSelectEle.style.display = "flex";
@@ -138,8 +141,8 @@ function createTranHTML(obj = {}) {
   </div>
   <p class="trans-date">${new Date(obj?.time).toLocaleString()}</p>
   <div class="trans-item-btn">
-      <button id="transEdit"><i class="fa-regular fa-pen-to-square"></i></button>
-      <button id="transDelete"><i class="fa-regular fa-trash-can"></i></button>
+      <button id="transEdit" aria-label="Edit expense"><i class="fa-regular fa-pen-to-square" aria-hidden="true"></i></button>
+      <button id="transDelete" aria-label="Delete expense"><i class="fa-regular fa-trash-can" aria-hidden="true"></i></button>
   </div>
   </div>`;
 }
@@ -179,13 +182,25 @@ function renderTags() {
 renderTags();
 
 function addNewTag() {
-  const tagValue = tagInputField.value;
-  if (tagValue != "") {
-    localStorage.saveTag(tagValue);
-    renderTags();
+  const tagValue = tagInputField.value.trim();
+  if (!tagValue) {
+    showInfo(addAmountCardInfo, "Please enter a tag.");
+    return;
   }
+  if (
+    localStorage
+      .getAllTags()
+      .some((tag) => tag.toLowerCase() === tagValue.toLowerCase())
+  ) {
+    showInfo(addAmountCardInfo, "Tag already exists.");
+    return;
+  }
+
+  localStorage.saveTag(tagValue);
+  renderTags();
   tagInputField.value = "";
   tagInputEle.classList.remove("show");
+  hideInfo(addAmountCardInfo);
 }
 
 function renderTransHistory(transArr = []) {
@@ -219,7 +234,7 @@ function showChart() {
   expenseChart = new Chart(ctx, {
     type: "pie",
     data: {
-      labels: ["Expence", "Buget Left"],
+      labels: ["Expense", "Budget Left"],
       datasets: [
         {
           data: [
@@ -243,7 +258,7 @@ function showChart() {
   });
 }
 
-function findChekedTag(arr) {
+function findCheckedTag(arr) {
   let checkedTag = undefined;
   arr.forEach((tag) => {
     if (tag.checked) {
@@ -256,32 +271,28 @@ function findChekedTag(arr) {
 
 function addTransItem() {
   const amountEle = document.getElementById("addAmount");
-  const checkedTag = findChekedTag(
+  const checkedTag = findCheckedTag(
     Array.from(document.querySelectorAll('[name="expFor"]'))
   );
-  const amount = amountEle.value;
   // If a tag is selected -> grab value, if not assign "Misc." tag
   const checkedTagValue = checkedTag ? checkedTag.value : "Misc.";
 
-  if (amount && Number(amount) > 0) {
-    let transObj = {
-      id: Math.floor(Math.random() * 10000000),
-      amount: Number(amount),
-      tag: checkedTagValue,
-      time: new Date().toISOString(),
-    };
-    localStorage.saveTrans(transObj);
-    renderTransHistory(localStorage.getAllTrans());
-    addTranBtnEvent();
-    totalCalculate();
-    showSuccess(addAmountCardInfo, "Expense added.");
-  } else {
-    if (amount == "" || Number(amount) <= 0) {
-      showInfo(addAmountCardInfo, "Please enter proper amount.");
-    } else if (checkedTagValue == undefined) {
-      showInfo(addAmountCardInfo, "Please select a tag.");
-    }
+  if (!amountEle.checkValidity()) {
+    showInfo(addAmountCardInfo, "Please enter a valid amount.");
+    return;
   }
+
+  const transObj = {
+    id: Math.floor(Math.random() * 10000000),
+    amount: Number(amountEle.value),
+    tag: checkedTagValue,
+    time: new Date().toISOString(),
+  };
+  localStorage.saveTrans(transObj);
+  renderTransHistory(localStorage.getAllTrans());
+  addTranBtnEvent();
+  totalCalculate();
+  showSuccess(addAmountCardInfo, "Expense added.");
 
   amountEle.value = "";
   if (checkedTag) {
@@ -296,7 +307,7 @@ function clearInputForm() {
   Array.from(document.querySelectorAll('[name="expFor"]')).forEach((input) => {
     input.checked = false;
   });
-  document.querySelectorAll(".tags-conatiner label").forEach((label) => {
+  document.querySelectorAll(".tags-container label").forEach((label) => {
     label.style.backgroundColor = `${colors.lightBlue}`;
   });
   hideInfo(addAmountCardInfo);
@@ -305,7 +316,7 @@ function clearInputForm() {
 function addTranBtnEvent() {
   document.querySelectorAll(".trans-item").forEach((item) => {
     item.lastElementChild.lastElementChild.addEventListener("click", () => {
-      const sure = window.confirm("Are you really wanna delete this?");
+      const sure = window.confirm("Are you sure you want to delete this expense?");
       if (sure) {
         localStorage.deleteTrans(item.id);
         renderTransHistory(localStorage.getAllTrans());
@@ -326,33 +337,33 @@ function addTranBtnEvent() {
 }
 
 function editTran() {
-  if (
-    editAmountEle.value != "" &&
-    Number(editAmountEle.value) > 0 &&
-    editTagEle.value != ""
-  ) {
-    const transObj = {
-      id: Number(editCardEle.id),
-      amount: Number(editAmountEle.value),
-      tag: editTagEle.value,
-    };
-    localStorage.saveTrans(transObj);
-    renderTransHistory(localStorage.getAllTrans());
-    addTranBtnEvent();
-    totalCalculate();
-    editAmountEle.value = "";
-    editTagEle.value = "";
-    showSuccess(editCardInfo, "Expense updated.");
-    setTimeout(() => {
-      editCardEle.style.display = "none";
-      hideInfo(editCardInfo);
-    }, 1200);
+  if (!editAmountEle.checkValidity()) {
+    showInfo(editCardInfo, "Please enter a valid amount.");
     return;
-  } else {
-    showInfo(editCardInfo, "Please enter proper value.");
   }
 
-  editCardEle.style.display = "none";
+  const tagValue = editTagEle.value.trim();
+  if (!tagValue) {
+    showInfo(editCardInfo, "Please enter a tag.");
+    return;
+  }
+
+  const transObj = {
+    id: Number(editCardEle.id),
+    amount: Number(editAmountEle.value),
+    tag: tagValue,
+  };
+  localStorage.saveTrans(transObj);
+  renderTransHistory(localStorage.getAllTrans());
+  addTranBtnEvent();
+  totalCalculate();
+  editAmountEle.value = "";
+  editTagEle.value = "";
+  showSuccess(editCardInfo, "Expense updated.");
+  setTimeout(() => {
+    editCardEle.style.display = "none";
+    hideInfo(editCardInfo);
+  }, 1200);
 }
 
 const sortTransHelper = (arr = [], sortTypeNum) => {

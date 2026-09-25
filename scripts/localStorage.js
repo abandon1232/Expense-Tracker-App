@@ -26,10 +26,10 @@ export default class display {
 
     static saveTrans (trans = {}){
         const allTrans = display.getAllTrans();
-        const exiting = allTrans.find(item => item.id == trans.id);
-        if (exiting){
-            exiting.amount = trans?.amount;
-            exiting.tag = trans?.tag;
+        const existing = allTrans.find(item => item.id == trans.id);
+        if (existing){
+            existing.amount = trans?.amount;
+            existing.tag = trans?.tag;
         }
         else{
             allTrans.unshift(trans);
@@ -59,9 +59,9 @@ export default class display {
 
     static saveTag (str){
         const allTags = display.getAllTags();
-        const exiting = allTags.find(tag => tag == str);
-        if (exiting){
-            return `Tag already exit`;
+        const existing = allTags.find(tag => tag == str);
+        if (existing){
+            return `Tag already exists`;
         }
         else{
             allTags.push(str);

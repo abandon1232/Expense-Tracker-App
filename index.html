@@ -4,14 +4,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Expence Traker</title>
+    <title>Expense Tracker</title>
+    <!-- Local Font Awesome 6.5.2 styles. -->
+    <link rel="stylesheet" href="./vendor/fontawesome/css/fontawesome.min.css">
+    <link rel="stylesheet" href="./vendor/fontawesome/css/solid.min.css">
+    <link rel="stylesheet" href="./vendor/fontawesome/css/regular.min.css">
     <!-- css file link  -->
     <link rel="stylesheet" href="./style.css">
 
-    <!-- fontawsome cdn  -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
-        integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A=="
-        crossorigin="anonymous" referrerpolicy="no-referrer" />
 </head>
 
 <body>
@@ -19,35 +19,36 @@
     <div id="" class="edit-money-card">
         <div class="add-type">
             <p>Edit Expense</p>
-            <button id="closeEdit">
-                <i class="fa-solid fa-xmark"></i>
+            <button id="closeEdit" aria-label="Close edit form">
+                <i class="fa-solid fa-xmark" aria-hidden="true"></i>
             </button>
         </div>
         <div class="edit-form-container">
             <div class="flex-col edit-amount">
                 <label for="editAmount">Amount</label>
-                <input type="number" min="0" name="amount" id="editAmount">
+                <input type="text" inputmode="decimal" name="amount" id="editAmount" required
+                    pattern="(?:[1-9]\d*(?:\.\d+)?|0\.\d+)">
             </div>
             <div class="exp-for-edit flex-col">
                 <label for="tagName">Tag Name</label>
-                <input type="text" minlength="25" id="tagName">
+                <input type="text" maxlength="20" id="tagName" required>
             </div>
         </div>
-        <div class="info-container"><i class="fa-solid fa-circle-info"></i>
+        <div class="info-container"><i class="fa-solid fa-circle-info" aria-hidden="true"></i>
             <p class="info"></p>
         </div>
-        <button id="editTranBtn">Edit Expense <i class="fa-regular fa-pen-to-square"></i></button>
+        <button id="editTranBtn">Edit Expense <i class="fa-regular fa-pen-to-square" aria-hidden="true"></i></button>
     </div>
 
-    <!-- mobie btn and greet user  -->
-    <button class="mobile-add-btn"><i class="fa-solid fa-plus"></i></button>
+    <!-- mobile btn and greet user  -->
+    <button class="mobile-add-btn" aria-label="Show expense form"><i class="fa-solid fa-plus" aria-hidden="true"></i></button>
     <div class="main">
         <div class="greeting">
             <p>Hi <h1>User,</h1>
             </p>
         </div>
 
-        <!---------------------------- left section strats here  -------------------------->
+        <!---------------------------- left section starts here  -------------------------->
         <div class="left-container">
 
 
@@ -111,35 +112,36 @@
                 <div class="form-container">
                     <div class="flex-col add-amount">
                         <label for="addAmount">Amount</label>
-                        <input type="number" min="0" name="amount" id="addAmount">
+                        <input type="text" inputmode="decimal" name="amount" id="addAmount" required
+                            pattern="(?:[1-9]\d*(?:\.\d+)?|0\.\d+)">
                     </div>
 
                     <div class="exp-for">
-                        <div class="tags-conatiner">
-                            <input type="radio" id="shoping" name="expFor" value="Shopping🛍️">
-                            <label for="shoping">Shopping🛍️</label>
+                        <div class="tags-container">
+                            <input type="radio" id="shopping" name="expFor" value="Shopping🛍️">
+                            <label for="shopping">Shopping🛍️</label>
                             <input type="radio" id="food" name="expFor" value="Food😋">
                             <label for="food">Food😋</label>
                             <input type="radio" id="subscription" name="expFor" value="Subscription📱">
                             <label for="subscription">Subscription📱</label>
                         </div>
                         <div class="tag-input">
-                            <input type="text" name="" maxlength="20" id="tagInputField">
-                            <button id="confirmNewTag"><i class="fa-solid fa-check"></i></button>
+                            <input type="text" name="" maxlength="20" id="tagInputField" required>
+                            <button id="confirmNewTag" aria-label="Confirm new tag"><i class="fa-solid fa-check" aria-hidden="true"></i></button>
                         </div>
                         <button id="addTagBtn">
-                            Add tag <i class="fa-solid fa-plus"></i>
+                            Add tag <i class="fa-solid fa-plus" aria-hidden="true"></i>
                         </button>
 
                     </div>
 
                 </div>
-                <div class="info-container"><i class="fa-solid fa-circle-info"></i>
+                <div class="info-container"><i class="fa-solid fa-circle-info" aria-hidden="true"></i>
                     <p class="info"></p>
                 </div>
 
                 <div class="add-money-card-btn">
-                    <button id="addBtn">Add <i class="fa-solid fa-plus"></i></button>
+                    <button id="addBtn">Add <i class="fa-solid fa-plus" aria-hidden="true"></i></button>
                     <button id="clearBtn">Clear</button>
                 </div>
 
@@ -164,29 +166,14 @@
 
             <div class="money-history-container">
 
-                <!-- <div class="trans-item" id="${obj?.id}">
-  <div>
-      <h4>-₹${obj?.amount}</h4>
-      <div class="tranTagContainer">
-        <p>${obj?.tag}</p>
-        <p class="trans-date">${new Date(obj?.time).toLocaleString()}</p>
-      </div>
-  </div>
-  <p class="trans-date">${new Date(obj?.time).toLocaleString()}</p>
-  <div class="trans-item-btn">
-      <button id="transEdit"><i class="fa-regular fa-pen-to-square"></i></button>
-      <button id="transDelete"><i class="fa-regular fa-trash-can"></i></button>
-  </div>
-  </div> -->
-
             </div>
         </div>
     </div>
 
 
 
-    <!-- chart.js cdn for pie card  -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Local Chart.js 4.5.1 build for offline use. -->
+    <script src="./vendor/chart.umd.min.js"></script>
 
     <script src="./scripts/app.js" type="module"></script>
 
