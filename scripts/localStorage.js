@@ -57,6 +57,11 @@ export default class display {
         return JSON.parse(allTags);
     }
 
+    static saveDefaultTags (){
+        ["Shopping🛍️", "Food😋", "Subscription📱", "Manik👨‍💻", "Misc."]
+            .forEach(tag => display.saveTag(tag));
+    }
+
     static saveTag (str){
         const allTags = display.getAllTags();
         const existing = allTags.find(tag => tag == str);

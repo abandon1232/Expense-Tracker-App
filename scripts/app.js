@@ -147,8 +147,7 @@ function createTranHTML(obj = {}) {
   </div>`;
 }
 
-localStorage.saveTag("Manik👨‍💻");
-localStorage.saveTag("Misc.");    // Default for transactions without a tag
+localStorage.saveDefaultTags();
 
 function createTagHTML(str) {
   return `
