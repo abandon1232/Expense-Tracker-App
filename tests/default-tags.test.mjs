@@ -24,3 +24,20 @@ test("default tags are restored without replacing user-created tags", () => {
     "Misc.",
   ]);
 });
+
+test("income tags are stored separately and restored without duplicates", () => {
+  data.clear();
+  Storage.saveIncomeTag("Freelance");
+
+  Storage.saveDefaultIncomeTags();
+  Storage.saveDefaultIncomeTags();
+
+  assert.deepEqual(Storage.getAllIncomeTags(), [
+    "Freelance",
+    "Salary💼",
+    "Bonus🎁",
+    "Gift🎉",
+    "Other",
+  ]);
+  assert.equal(Storage.saveIncomeTag("salary💼"), "Tag already exists");
+});

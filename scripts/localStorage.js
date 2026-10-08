@@ -73,5 +73,27 @@ export default class display {
         }
         localStorage.setItem("tags", JSON.stringify(allTags));
     }
+
+    static getAllIncomeTags (){
+        const allTags = localStorage.getItem("income-tags") || "[]";
+        return JSON.parse(allTags);
+    }
+
+    static saveDefaultIncomeTags (){
+        ["Salary💼", "Bonus🎁", "Gift🎉", "Other"]
+            .forEach(tag => display.saveIncomeTag(tag));
+    }
+
+    static saveIncomeTag (str){
+        const allTags = display.getAllIncomeTags();
+        const existing = allTags.find(
+            tag => tag.toLowerCase() === str.toLowerCase()
+        );
+        if (existing){
+            return `Tag already exists`;
+        }
+        allTags.push(str);
+        localStorage.setItem("income-tags", JSON.stringify(allTags));
+    }
     
 }

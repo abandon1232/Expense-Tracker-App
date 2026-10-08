@@ -17,10 +17,9 @@ const colors = {
   lightBlue: "#d2dfff",
 };
 
-const incomeTags = ["Salary💼", "Bonus🎁", "Gift🎉", "Other"];
-
 let totalExpData, totalBudgetLeftData;
 let expenseChart;
+let currentTagType = "expense";
 
 // ---------------------------------reference of html element here---------------------------
 const ctx = document.getElementById("myChart");
@@ -146,19 +145,21 @@ function addIncomeItem() {
 }
 
 const showIncomeInput = () => {
+  currentTagType = "income";
   hideInfo(addAmountCardInfo);
   addExpBtnEle.classList.remove("selected-add-exp");
   addIncomeBtnEle.classList.add("selected-add-income");
   expForSelectEle.style.display = "flex";
-  addNewTagBtnEle.style.display = "none";
+  addNewTagBtnEle.style.display = "";
   tagInputEle.classList.remove("show");
-  renderTags(incomeTags);
+  renderTags(localStorage.getAllIncomeTags());
   transAmountEle.value = "";
   addBtnEle.removeEventListener("click", addTransItem);
   addBtnEle.addEventListener("click", addIncomeItem);
 };
 
 const showExpInput = () => {
+  currentTagType = "expense";
   hideInfo(addAmountCardInfo);
   addIncomeBtnEle.classList.remove("selected-add-income");
   addExpBtnEle.classList.add("selected-add-exp");
@@ -190,6 +191,7 @@ function createTranHTML(obj = {}) {
 }
 
 localStorage.saveDefaultTags();
+localStorage.saveDefaultIncomeTags();
 
 function createTagHTML(str) {
   return `
@@ -227,17 +229,22 @@ function addNewTag() {
     showInfo(addAmountCardInfo, "Please enter a tag.");
     return;
   }
-  if (
-    localStorage
-      .getAllTags()
-      .some((tag) => tag.toLowerCase() === tagValue.toLowerCase())
-  ) {
+  const isIncomeTag = currentTagType === "income";
+  const allTags = isIncomeTag
+    ? localStorage.getAllIncomeTags()
+    : localStorage.getAllTags();
+  if (allTags.some((tag) => tag.toLowerCase() === tagValue.toLowerCase())) {
     showInfo(addAmountCardInfo, "Tag already exists.");
     return;
   }
 
-  localStorage.saveTag(tagValue);
-  renderTags();
+  if (isIncomeTag) {
+    localStorage.saveIncomeTag(tagValue);
+    renderTags(localStorage.getAllIncomeTags());
+  } else {
+    localStorage.saveTag(tagValue);
+    renderTags();
+  }
   tagInputField.value = "";
   tagInputEle.classList.remove("show");
   hideInfo(addAmountCardInfo);
