@@ -1,4 +1,5 @@
 import localStorage from "./localStorage.js";
+import { MAX_AMOUNT, getChartState, parseAmount } from "./money.js";
 
 // ---------------------------all data here ------------------------
 
@@ -15,6 +16,8 @@ let expenseChart;
 
 // ---------------------------------reference of html element here---------------------------
 const ctx = document.getElementById("myChart");
+const chartEmptyEle = document.querySelector(".chart-empty");
+const chartContainerEle = document.querySelector(".chart-container");
 const budgetLeftEle = document.getElementById("budgetLeft");
 
 const currencyEles = document.getElementsByName("currency");
@@ -63,14 +66,15 @@ function totalCalculate() {
   const allTrans = localStorage.getAllTrans();
   let total = 0;
   for (let i = 0; i < allTrans.length; i++) {
-    total += allTrans[i].amount;
+    total += parseAmount(allTrans[i].amount) ?? 0;
   }
   totalExpEle.textContent = `${total}`;
-  const leftBudget = Number(localStorage.getTotalBudget()) - total;
+  const totalBudget = parseAmount(localStorage.getTotalBudget()) ?? 0;
+  const leftBudget = totalBudget - total;
   totalExpData = total;
   totalBudgetLeftData = leftBudget;
   budgetLeftEle.textContent = `${leftBudget}`;
-  totalBudgetEle.textContent = localStorage.getTotalBudget();
+  totalBudgetEle.textContent = `${totalBudget}`;
   updateChart();
 }
 
@@ -105,7 +109,13 @@ function addBudgetInput() {
     return;
   }
 
-  localStorage.setTotalBudget(Number(transAmountEle.value));
+  const amount = parseAmount(transAmountEle.value);
+  if (amount === null) {
+    showInfo(addAmountCardInfo, `Amount must not exceed ${MAX_AMOUNT.toLocaleString("en-US")}.`);
+    return;
+  }
+
+  localStorage.setTotalBudget(amount);
   totalCalculate();
   hideInfo(addAmountCardInfo);
 }
@@ -218,29 +228,39 @@ function renderTransHistory(transArr = []) {
 renderTransHistory(localStorage.getAllTrans());
 
 function updateChart() {
+  chartContainerEle.classList.toggle(
+    "chart-empty-state",
+    getChartState(totalExpData, totalBudgetLeftData).empty
+  );
   if (!expenseChart) {
     return;
   }
 
-  expenseChart.data.datasets[0].data = [
-    totalExpData,
-    totalBudgetLeftData >= 0 ? totalBudgetLeftData : 0,
-  ];
+  const { data, empty } = getChartState(totalExpData, totalBudgetLeftData);
+  expenseChart.data.labels = empty ? ["No data"] : ["Expense", "Budget Left"];
+  expenseChart.data.datasets[0].data = data;
+  expenseChart.data.datasets[0].backgroundColor = empty
+    ? ["#d8d8d8"]
+    : [colors.red, colors.green];
+  chartEmptyEle.classList.toggle("chart-empty-visible", empty);
   expenseChart.update();
 }
 
 function showChart() {
+  chartContainerEle.classList.toggle(
+    "chart-empty-state",
+    getChartState(totalExpData, totalBudgetLeftData).empty
+  );
+  const { data, empty } = getChartState(totalExpData, totalBudgetLeftData);
+  chartEmptyEle.classList.toggle("chart-empty-visible", empty);
   expenseChart = new Chart(ctx, {
     type: "pie",
     data: {
-      labels: ["Expense", "Budget Left"],
+      labels: empty ? ["No data"] : ["Expense", "Budget Left"],
       datasets: [
         {
-          data: [
-            totalExpData,
-            totalBudgetLeftData >= 0 ? totalBudgetLeftData : 0,
-          ],
-          backgroundColor: [colors.red, colors.green],
+          data,
+          backgroundColor: empty ? ["#d8d8d8"] : [colors.red, colors.green],
           borderWidth: 0,
         },
       ],
@@ -281,9 +301,15 @@ function addTransItem() {
     return;
   }
 
+  const amount = parseAmount(amountEle.value);
+  if (amount === null) {
+    showInfo(addAmountCardInfo, `Amount must not exceed ${MAX_AMOUNT.toLocaleString("en-US")}.`);
+    return;
+  }
+
   const transObj = {
     id: Math.floor(Math.random() * 10000000),
-    amount: Number(amountEle.value),
+    amount,
     tag: checkedTagValue,
     time: new Date().toISOString(),
   };
@@ -347,9 +373,15 @@ function editTran() {
     return;
   }
 
+  const amount = parseAmount(editAmountEle.value);
+  if (amount === null) {
+    showInfo(editCardInfo, `Amount must not exceed ${MAX_AMOUNT.toLocaleString("en-US")}.`);
+    return;
+  }
+
   const transObj = {
     id: Number(editCardEle.id),
-    amount: Number(editAmountEle.value),
+    amount,
     tag: tagValue,
   };
   localStorage.saveTrans(transObj);
