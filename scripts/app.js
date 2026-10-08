@@ -1,5 +1,11 @@
 import localStorage from "./localStorage.js";
-import { MAX_AMOUNT, getChartState, parseAmount } from "./money.js";
+import {
+  MAX_AMOUNT,
+  getExpenseTotal,
+  getChartState,
+  parseAmount,
+  updateBudgetForIncome,
+} from "./money.js";
 
 // ---------------------------all data here ------------------------
 
@@ -10,6 +16,8 @@ const colors = {
   purple: "#8b8dff",
   lightBlue: "#d2dfff",
 };
+
+const incomeTags = ["Salary💼", "Bonus🎁", "Gift🎉", "Other"];
 
 let totalExpData, totalBudgetLeftData;
 let expenseChart;
@@ -32,7 +40,7 @@ function changeCurrency(){
 const totalBudgetEle = document.getElementById("totalBudget");
 const totalExpEle = document.getElementById("totalExp");
 const addExpBtnEle = document.querySelector(".add-exp-btn");
-const addBudBtnEle = document.querySelector(".add-bud-btn");
+const addIncomeBtnEle = document.querySelector(".add-income-btn");
 const expForSelectEle = document.querySelector(".exp-for");
 const tagContainer = document.querySelector(".tags-container");
 let allOptionLabel = document.querySelectorAll(".tags-container label");
@@ -64,10 +72,7 @@ currencySelectorEle.value = localStorage.loadCurrency();
 
 function totalCalculate() {
   const allTrans = localStorage.getAllTrans();
-  let total = 0;
-  for (let i = 0; i < allTrans.length; i++) {
-    total += parseAmount(allTrans[i].amount) ?? 0;
-  }
+  const total = getExpenseTotal(allTrans);
   totalExpEle.textContent = `${total}`;
   const totalBudget = parseAmount(localStorage.getTotalBudget()) ?? 0;
   const leftBudget = totalBudget - total;
@@ -103,47 +108,74 @@ function showSuccess(ele, txt) {
   }, 2500);
 }
 
-function addBudgetInput() {
+function addIncomeItem() {
   if (!transAmountEle.checkValidity()) {
-    showInfo(addAmountCardInfo, "Please enter a valid budget amount.");
+    showInfo(addAmountCardInfo, "Please enter a valid income amount.");
     return;
   }
 
   const amount = parseAmount(transAmountEle.value);
-  if (amount === null) {
-    showInfo(addAmountCardInfo, `Amount must not exceed ${MAX_AMOUNT.toLocaleString("en-US")}.`);
+  const totalBudget = updateBudgetForIncome(
+    localStorage.getTotalBudget(),
+    0,
+    amount
+  );
+  if (amount === null || totalBudget === null) {
+    showInfo(addAmountCardInfo, `Total budget must not exceed ${MAX_AMOUNT.toLocaleString("en-US")}.`);
     return;
   }
 
-  localStorage.setTotalBudget(amount);
+  const checkedTag = findCheckedTag(
+    Array.from(document.querySelectorAll('[name="expFor"]'))
+  );
+  const transObj = {
+    id: Math.floor(Math.random() * 10000000),
+    amount,
+    tag: checkedTag ? checkedTag.value : "Other",
+    type: "income",
+    time: new Date().toISOString(),
+  };
+
+  localStorage.setTotalBudget(totalBudget);
+  localStorage.saveTrans(transObj);
+  renderTransHistory(localStorage.getAllTrans());
+  addTranBtnEvent();
   totalCalculate();
-  hideInfo(addAmountCardInfo);
+  clearInputForm();
+  showSuccess(addAmountCardInfo, "Income added.");
 }
 
-const showBudgetInput = () => {
+const showIncomeInput = () => {
   hideInfo(addAmountCardInfo);
   addExpBtnEle.classList.remove("selected-add-exp");
-  addBudBtnEle.classList.add("selected-add-bud");
-  expForSelectEle.style.display = "none";
-  transAmountEle.value = localStorage.getTotalBudget();
+  addIncomeBtnEle.classList.add("selected-add-income");
+  expForSelectEle.style.display = "flex";
+  addNewTagBtnEle.style.display = "none";
+  tagInputEle.classList.remove("show");
+  renderTags(incomeTags);
+  transAmountEle.value = "";
   addBtnEle.removeEventListener("click", addTransItem);
-  addBtnEle.addEventListener("click", addBudgetInput);
+  addBtnEle.addEventListener("click", addIncomeItem);
 };
 
 const showExpInput = () => {
   hideInfo(addAmountCardInfo);
-  addBudBtnEle.classList.remove("selected-add-bud");
+  addIncomeBtnEle.classList.remove("selected-add-income");
   addExpBtnEle.classList.add("selected-add-exp");
   expForSelectEle.style.display = "flex";
+  addNewTagBtnEle.style.display = "";
+  renderTags();
   transAmountEle.value = "";
-  addBtnEle.removeEventListener("click", addBudgetInput);
+  addBtnEle.removeEventListener("click", addIncomeItem);
   addBtnEle.addEventListener("click", addTransItem);
 };
 
 function createTranHTML(obj = {}) {
-  return `<div class="trans-item" id="${obj?.id}">
+  const isIncome = obj?.type === "income";
+  const sign = isIncome ? "+" : "-";
+  return `<div class="trans-item${isIncome ? " trans-income" : ""}" id="${obj?.id}">
   <div>
-      <h4>-<span name="currency"></span>${obj?.amount}</h4>
+      <h4>${sign}<span name="currency"></span>${obj?.amount}</h4>
       <div class="tranTagContainer">
         <p>${obj?.tag}</p>
         <p class="trans-date">${new Date(obj?.time).toLocaleString()}</p>
@@ -151,8 +183,8 @@ function createTranHTML(obj = {}) {
   </div>
   <p class="trans-date">${new Date(obj?.time).toLocaleString()}</p>
   <div class="trans-item-btn">
-      <button id="transEdit" aria-label="Edit expense"><i class="fa-regular fa-pen-to-square" aria-hidden="true"></i></button>
-      <button id="transDelete" aria-label="Delete expense"><i class="fa-regular fa-trash-can" aria-hidden="true"></i></button>
+      <button id="transEdit" aria-label="Edit transaction"><i class="fa-regular fa-pen-to-square" aria-hidden="true"></i></button>
+      <button id="transDelete" aria-label="Delete transaction"><i class="fa-regular fa-trash-can" aria-hidden="true"></i></button>
   </div>
   </div>`;
 }
@@ -166,9 +198,8 @@ function createTagHTML(str) {
   `;
 }
 
-function renderTags() {
+function renderTags(tagArray = localStorage.getAllTags()) {
   tagContainer.innerHTML = ``;
-  const tagArray = localStorage.getAllTags();
   if (tagArray == []) {
     return;
   } else {
@@ -341,8 +372,20 @@ function clearInputForm() {
 function addTranBtnEvent() {
   document.querySelectorAll(".trans-item").forEach((item) => {
     item.lastElementChild.lastElementChild.addEventListener("click", () => {
-      const sure = window.confirm("Are you sure you want to delete this expense?");
+      const tranObj = localStorage.findTran(item.id);
+      const sure = window.confirm("Are you sure you want to delete this transaction?");
       if (sure) {
+        if (tranObj?.type === "income") {
+          const totalBudget = updateBudgetForIncome(
+            localStorage.getTotalBudget(),
+            tranObj.amount,
+            0
+          );
+          if (totalBudget === null) {
+            return;
+          }
+          localStorage.setTotalBudget(totalBudget);
+        }
         localStorage.deleteTrans(item.id);
         renderTransHistory(localStorage.getAllTrans());
         addTranBtnEvent();
@@ -379,6 +422,20 @@ function editTran() {
     return;
   }
 
+  const previousTran = localStorage.findTran(editCardEle.id);
+  if (previousTran?.type === "income") {
+    const totalBudget = updateBudgetForIncome(
+      localStorage.getTotalBudget(),
+      previousTran.amount,
+      amount
+    );
+    if (totalBudget === null) {
+      showInfo(editCardInfo, `Total budget must not exceed ${MAX_AMOUNT.toLocaleString("en-US")}.`);
+      return;
+    }
+    localStorage.setTotalBudget(totalBudget);
+  }
+
   const transObj = {
     id: Number(editCardEle.id),
     amount,
@@ -390,7 +447,10 @@ function editTran() {
   totalCalculate();
   editAmountEle.value = "";
   editTagEle.value = "";
-  showSuccess(editCardInfo, "Expense updated.");
+  showSuccess(
+    editCardInfo,
+    previousTran?.type === "income" ? "Income updated." : "Expense updated."
+  );
   setTimeout(() => {
     editCardEle.style.display = "none";
     hideInfo(editCardInfo);
@@ -451,7 +511,7 @@ closeEditCardBtn.addEventListener("click", () => {
   hideInfo(editCardInfo);
 });
 editTranBtn.addEventListener("click", editTran);
-addBudBtnEle.addEventListener("click", showBudgetInput);
+addIncomeBtnEle.addEventListener("click", showIncomeInput);
 addExpBtnEle.addEventListener("click", showExpInput);
 addBtnEle.addEventListener("click", addTransItem);
 clearBtnEle.addEventListener("click", clearInputForm);

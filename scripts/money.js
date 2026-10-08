@@ -7,6 +7,36 @@ export function parseAmount(value) {
     : null;
 }
 
+export function updateBudgetForIncome(currentBudget, previousAmount, nextAmount) {
+  const current = Number(currentBudget);
+  const previous = Number(previousAmount);
+  const next = Number(nextAmount);
+  if (
+    !Number.isFinite(current) ||
+    !Number.isFinite(previous) ||
+    !Number.isFinite(next) ||
+    current < 0 ||
+    previous < 0 ||
+    next < 0
+  ) {
+    return null;
+  }
+
+  const total = current - previous + next;
+
+  return total >= 0 && total <= MAX_AMOUNT ? total : null;
+}
+
+export function getExpenseTotal(transactions = []) {
+  return transactions.reduce((total, transaction) => {
+    if (transaction?.type === "income") {
+      return total;
+    }
+
+    return total + (parseAmount(transaction?.amount) ?? 0);
+  }, 0);
+}
+
 export function getChartState(expense, budgetLeft) {
   const safeExpense = Number.isFinite(expense) && expense > 0 ? expense : 0;
   const safeBudgetLeft =

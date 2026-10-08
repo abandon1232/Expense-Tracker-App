@@ -295,7 +295,7 @@ select:focus-visible {
     z-index: 10;
 }
 
-.selected-add-bud {
+.selected-add-income {
     background-color: var(--green);
     box-shadow: -2px 0px 10px #474747a7;
     z-index: 10;
@@ -436,6 +436,10 @@ select:focus {
 .trans-item h4 {
     font-size: 1.5rem;
     color: var(--red);
+}
+
+.trans-item.trans-income h4 {
+    color: var(--green);
 }
 
 
