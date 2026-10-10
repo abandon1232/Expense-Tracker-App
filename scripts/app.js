@@ -219,8 +219,20 @@ function renderTags() {
 
 renderTags();
 
+function sanitizeTag(tag) {
+  const forbiddenChars = /[`!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~]/;
+  let sanitizedTag = "";
+
+  for (let i = 0; i < tag.length; i++) {
+    if(forbiddenChars.test(tag[i])) continue;
+    sanitizedTag += tag[i];
+  }
+
+  return sanitizedTag;
+}
+
 function addNewTag() {
-  const tagValue = tagInputField.value.trim();
+  const tagValue = sanitizeTag(tagInputField.value.trim());
   if (!tagValue) {
     showInfo(addAmountCardInfo, "Please enter a tag.");
     return;
