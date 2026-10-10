@@ -59,20 +59,7 @@
                     <div class="card-text-container">
                         <p>Budget Left</p>
                         <h1>
-                            <select class="currency-selector" id="currencySelector">
-                                <option value="¤">¤</option>
-                                <option value="€">€</option>
-                                <option value="kr">kr</option>
-                                <option value="¥">¥</option>
-                                <option value="$">$</option>
-                                <option value="£">£</option>
-                                <option value="₹">₹</option>
-                                <option value="₱">₱</option>
-                                <option value="₽">₽</option>
-                                <option value="₪">₪</option>
-                                <option value="₩">₩</option>
-                                <option value="zł">zł</option>
-                            </select><span id="budgetLeft">0</span>
+                            <span name="L_currency"></span><span id="budgetLeft">0</span><span name="R_currency"></span>
                         </h1>
                     </div>
                     <div class="chart-container">
@@ -86,14 +73,14 @@
                     <div class="total-card total-budget">
                         <p>Total Budget</p>
                         <div>
-                            <h4><span name="currency"></span><span id="totalBudget">0</span></h4>
+                            <h4><span name="L_currency"></span><span id="totalBudget">0</span><span name="R_currency"></span></h4>
                         </div>
                     </div>
 
                     <div class="total-card total-exp">
                         <p>Total Expense</p>
                         <div>
-                            <h4><span name="currency"></span><span id="totalExp">0</span></h4>
+                            <h4><span name="L_currency"></span><span id="totalExp">0</span><span name="R_currency"></span></h4>
                         </div>
                     </div>
                 </div>
@@ -157,11 +144,20 @@
         <div class="right-container">
             <div class="history-text">
                 <h1>History</h1>
-                <select name="sortTrans" id="sortTrans">
-                    <option value="default">Default</option>
-                    <option value="highToLow">High to Low</option>
-                    <option value="lowToHigh">Low to High</option>
-                </select>
+                <span>
+                    <label for="currencySelector">Currency:</label>
+                    <select size="1" name="currencySelector" id="currencySelector">
+                        <!-- Currencies are inserted here  -->
+                    </select>
+                </span>
+                <span>
+                    <label for="sortTrans">Sort by:</label>
+                    <select name="sortTrans" id="sortTrans">
+                        <option value="default">Default</option>
+                        <option value="highToLow">High to Low</option>
+                        <option value="lowToHigh">Low to High</option>
+                    </select>
+                </span>
             </div>
 
             <div class="money-history-container">

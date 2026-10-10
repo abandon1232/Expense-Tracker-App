@@ -1,10 +1,11 @@
 export default class display {
     
     static loadCurrency(){
-        const currency = localStorage.getItem("currency") || "¤";
+        const currency = localStorage.getItem("currency") || "0";
         return currency;
     }
 
+    // The currency is saved in id-format (in relation to the index of currencies.js)
     static saveCurrency(new_currency){
         localStorage.setItem("currency", new_currency);
     }
