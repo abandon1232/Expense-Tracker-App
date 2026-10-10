@@ -340,8 +340,14 @@ select:focus-visible {
     gap: 5px;
 }
 
-.exp-for input {
-    display: none;
+.tags-container input[type="radio"] {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
 }
 
 input[type="number"],
@@ -391,6 +397,15 @@ select:focus {
 
 .exp-for label:hover {
     background-color: var(--yellow);
+}
+
+.tags-container input[type="radio"]:checked+label {
+    background-color: var(--yellow);
+}
+
+.tags-container input[type="radio"]:focus-visible+label {
+    outline: 3px solid var(--yellow);
+    outline-offset: 2px;
 }
 
 .exp-for label:active,

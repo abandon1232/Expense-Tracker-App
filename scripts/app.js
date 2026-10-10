@@ -12,9 +12,6 @@ import {
 const colors = {
   red: "#F38181",
   green: "#297054b0",
-  yellow: "#FCE38A",
-  purple: "#8b8dff",
-  lightBlue: "#d2dfff",
 };
 
 let totalExpData, totalBudgetLeftData;
@@ -42,7 +39,6 @@ const addExpBtnEle = document.querySelector(".add-exp-btn");
 const addIncomeBtnEle = document.querySelector(".add-income-btn");
 const expForSelectEle = document.querySelector(".exp-for");
 const tagContainer = document.querySelector(".tags-container");
-let allOptionLabel = document.querySelectorAll(".tags-container label");
 const addBtnEle = document.getElementById("addBtn");
 const clearBtnEle = document.getElementById("clearBtn");
 const transAmountEle = document.getElementById("addAmount");
@@ -184,8 +180,8 @@ function createTranHTML(obj = {}) {
   </div>
   <p class="trans-date">${new Date(obj?.time).toLocaleString()}</p>
   <div class="trans-item-btn">
-      <button id="transEdit" aria-label="Edit transaction"><i class="fa-regular fa-pen-to-square" aria-hidden="true"></i></button>
-      <button id="transDelete" aria-label="Delete transaction"><i class="fa-regular fa-trash-can" aria-hidden="true"></i></button>
+      <button class="trans-edit" aria-label="Edit transaction"><i class="fa-regular fa-pen-to-square" aria-hidden="true"></i></button>
+      <button class="trans-delete" aria-label="Delete transaction"><i class="fa-regular fa-trash-can" aria-hidden="true"></i></button>
   </div>
   </div>`;
 }
@@ -193,11 +189,21 @@ function createTranHTML(obj = {}) {
 localStorage.saveDefaultTags();
 localStorage.saveDefaultIncomeTags();
 
-function createTagHTML(str) {
-  return `
-  <input type="radio" id="${str}" name="expFor" value="${str}">
-  <label for="${str}">${str}</label>
-  `;
+function createTagElements(str, index) {
+  const id = `tag-${currentTagType}-${index}`;
+  const input = document.createElement("input");
+  input.type = "radio";
+  input.id = id;
+  input.name = "expFor";
+  input.value = str;
+
+  const label = document.createElement("label");
+  label.htmlFor = id;
+  label.textContent = str;
+
+  const elements = document.createDocumentFragment();
+  elements.append(input, label);
+  return elements;
 }
 
 function renderTags(tagArray = localStorage.getAllTags()) {
@@ -205,20 +211,10 @@ function renderTags(tagArray = localStorage.getAllTags()) {
   if (tagArray == []) {
     return;
   } else {
-    tagArray.forEach((tag) => {
-      const tagEle = createTagHTML(tag);
-      tagContainer.insertAdjacentHTML("afterbegin", tagEle);
+    tagArray.forEach((tag, index) => {
+      tagContainer.prepend(createTagElements(tag, index));
     });
   }
-  allOptionLabel = document.querySelectorAll(".exp-for label");
-  allOptionLabel.forEach((label) => {
-    label.addEventListener("click", () => {
-      allOptionLabel.forEach((label) => {
-        label.style.backgroundColor = colors.lightBlue;
-      });
-      label.style.backgroundColor = colors.yellow;
-    });
-  });
 }
 
 renderTags();
@@ -360,8 +356,6 @@ function addTransItem() {
   amountEle.value = "";
   if (checkedTag) {
     checkedTag.checked = false;
-    const checkedLabel = document.querySelector(`[for="${checkedTag.id}"]`);
-    checkedLabel.style.backgroundColor = colors.lightBlue;
   }
 }
 
@@ -370,15 +364,12 @@ function clearInputForm() {
   Array.from(document.querySelectorAll('[name="expFor"]')).forEach((input) => {
     input.checked = false;
   });
-  document.querySelectorAll(".tags-container label").forEach((label) => {
-    label.style.backgroundColor = `${colors.lightBlue}`;
-  });
   hideInfo(addAmountCardInfo);
 }
 
 function addTranBtnEvent() {
   document.querySelectorAll(".trans-item").forEach((item) => {
-    item.lastElementChild.lastElementChild.addEventListener("click", () => {
+    item.querySelector(".trans-delete").addEventListener("click", () => {
       const tranObj = localStorage.findTran(item.id);
       const sure = window.confirm("Are you sure you want to delete this transaction?");
       if (sure) {
@@ -399,7 +390,7 @@ function addTranBtnEvent() {
         totalCalculate();
       }
     });
-    item.lastElementChild.firstElementChild.addEventListener("click", () => {
+    item.querySelector(".trans-edit").addEventListener("click", () => {
       const tranObj = localStorage.findTran(item.id);
       editAmountEle.value = "";
       editTagEle.value = "";
