@@ -160,21 +160,12 @@ select:focus-visible {
     font-size: 4.2rem;
     line-height: 1;
 }
-.currency-selector {
-    font-weight: 800;
-    font-size: 4.2rem;
-    line-height: 1;
-    margin-left: -2rem;
-    background-color: var(--main-blue);
-    border-color: var(--main-blue);
-    width: min-content;
-}
+
 
 .money-left-card p {
     font-size: 1.5rem;
     color: #424242;
 }
-
 
 /* total amounts section  */
 
@@ -378,6 +369,7 @@ select:focus {
     border: 1px solid #aeaeae;
     border-radius: 15px;
     outline-color: var(--blue);
+    overflow-y: scroll;
 }
 
 .right-container .money-history-container {
