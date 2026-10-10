@@ -57,6 +57,11 @@ export default class display {
         return JSON.parse(allTags);
     }
 
+    static saveDefaultTags (){
+        ["Shopping🛍️", "Food😋", "Subscription📱", "Manik👨‍💻", "Misc."]
+            .forEach(tag => display.saveTag(tag));
+    }
+
     static saveTag (str){
         const allTags = display.getAllTags();
         const existing = allTags.find(tag => tag == str);
@@ -67,6 +72,28 @@ export default class display {
             allTags.push(str);
         }
         localStorage.setItem("tags", JSON.stringify(allTags));
+    }
+
+    static getAllIncomeTags (){
+        const allTags = localStorage.getItem("income-tags") || "[]";
+        return JSON.parse(allTags);
+    }
+
+    static saveDefaultIncomeTags (){
+        ["Salary💼", "Bonus🎁", "Gift🎉", "Other"]
+            .forEach(tag => display.saveIncomeTag(tag));
+    }
+
+    static saveIncomeTag (str){
+        const allTags = display.getAllIncomeTags();
+        const existing = allTags.find(
+            tag => tag.toLowerCase() === str.toLowerCase()
+        );
+        if (existing){
+            return `Tag already exists`;
+        }
+        allTags.push(str);
+        localStorage.setItem("income-tags", JSON.stringify(allTags));
     }
     
 }

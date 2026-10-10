@@ -1,20 +1,27 @@
 import localStorage from "./localStorage.js";
+import {
+  MAX_AMOUNT,
+  getExpenseTotal,
+  getChartState,
+  parseAmount,
+  updateBudgetForIncome,
+} from "./money.js";
 
 // ---------------------------all data here ------------------------
 
 const colors = {
   red: "#F38181",
   green: "#297054b0",
-  yellow: "#FCE38A",
-  purple: "#8b8dff",
-  lightBlue: "#d2dfff",
 };
 
 let totalExpData, totalBudgetLeftData;
 let expenseChart;
+let currentTagType = "expense";
 
 // ---------------------------------reference of html element here---------------------------
 const ctx = document.getElementById("myChart");
+const chartEmptyEle = document.querySelector(".chart-empty");
+const chartContainerEle = document.querySelector(".chart-container");
 const budgetLeftEle = document.getElementById("budgetLeft");
 
 const currencyEles = document.getElementsByName("currency");
@@ -29,10 +36,9 @@ function changeCurrency(){
 const totalBudgetEle = document.getElementById("totalBudget");
 const totalExpEle = document.getElementById("totalExp");
 const addExpBtnEle = document.querySelector(".add-exp-btn");
-const addBudBtnEle = document.querySelector(".add-bud-btn");
+const addIncomeBtnEle = document.querySelector(".add-income-btn");
 const expForSelectEle = document.querySelector(".exp-for");
 const tagContainer = document.querySelector(".tags-container");
-let allOptionLabel = document.querySelectorAll(".tags-container label");
 const addBtnEle = document.getElementById("addBtn");
 const clearBtnEle = document.getElementById("clearBtn");
 const transAmountEle = document.getElementById("addAmount");
@@ -61,16 +67,14 @@ currencySelectorEle.value = localStorage.loadCurrency();
 
 function totalCalculate() {
   const allTrans = localStorage.getAllTrans();
-  let total = 0;
-  for (let i = 0; i < allTrans.length; i++) {
-    total += allTrans[i].amount;
-  }
+  const total = getExpenseTotal(allTrans);
   totalExpEle.textContent = `${total}`;
-  const leftBudget = Number(localStorage.getTotalBudget()) - total;
+  const totalBudget = parseAmount(localStorage.getTotalBudget()) ?? 0;
+  const leftBudget = totalBudget - total;
   totalExpData = total;
   totalBudgetLeftData = leftBudget;
   budgetLeftEle.textContent = `${leftBudget}`;
-  totalBudgetEle.textContent = localStorage.getTotalBudget();
+  totalBudgetEle.textContent = `${totalBudget}`;
   updateChart();
 }
 
@@ -99,41 +103,76 @@ function showSuccess(ele, txt) {
   }, 2500);
 }
 
-function addBudgetInput() {
+function addIncomeItem() {
   if (!transAmountEle.checkValidity()) {
-    showInfo(addAmountCardInfo, "Please enter a valid budget amount.");
+    showInfo(addAmountCardInfo, "Please enter a valid income amount.");
     return;
   }
 
-  localStorage.setTotalBudget(Number(transAmountEle.value));
+  const amount = parseAmount(transAmountEle.value);
+  const totalBudget = updateBudgetForIncome(
+    localStorage.getTotalBudget(),
+    0,
+    amount
+  );
+  if (amount === null || totalBudget === null) {
+    showInfo(addAmountCardInfo, `Total budget must not exceed ${MAX_AMOUNT.toLocaleString("en-US")}.`);
+    return;
+  }
+
+  const checkedTag = findCheckedTag(
+    Array.from(document.querySelectorAll('[name="expFor"]'))
+  );
+  const transObj = {
+    id: Math.floor(Math.random() * 10000000),
+    amount,
+    tag: checkedTag ? checkedTag.value : "Other",
+    type: "income",
+    time: new Date().toISOString(),
+  };
+
+  localStorage.setTotalBudget(totalBudget);
+  localStorage.saveTrans(transObj);
+  renderTransHistory(localStorage.getAllTrans());
+  addTranBtnEvent();
   totalCalculate();
-  hideInfo(addAmountCardInfo);
+  clearInputForm();
+  showSuccess(addAmountCardInfo, "Income added.");
 }
 
-const showBudgetInput = () => {
+const showIncomeInput = () => {
+  currentTagType = "income";
   hideInfo(addAmountCardInfo);
   addExpBtnEle.classList.remove("selected-add-exp");
-  addBudBtnEle.classList.add("selected-add-bud");
-  expForSelectEle.style.display = "none";
-  transAmountEle.value = localStorage.getTotalBudget();
+  addIncomeBtnEle.classList.add("selected-add-income");
+  expForSelectEle.style.display = "flex";
+  addNewTagBtnEle.style.display = "";
+  tagInputEle.classList.remove("show");
+  renderTags(localStorage.getAllIncomeTags());
+  transAmountEle.value = "";
   addBtnEle.removeEventListener("click", addTransItem);
-  addBtnEle.addEventListener("click", addBudgetInput);
+  addBtnEle.addEventListener("click", addIncomeItem);
 };
 
 const showExpInput = () => {
+  currentTagType = "expense";
   hideInfo(addAmountCardInfo);
-  addBudBtnEle.classList.remove("selected-add-bud");
+  addIncomeBtnEle.classList.remove("selected-add-income");
   addExpBtnEle.classList.add("selected-add-exp");
   expForSelectEle.style.display = "flex";
+  addNewTagBtnEle.style.display = "";
+  renderTags();
   transAmountEle.value = "";
-  addBtnEle.removeEventListener("click", addBudgetInput);
+  addBtnEle.removeEventListener("click", addIncomeItem);
   addBtnEle.addEventListener("click", addTransItem);
 };
 
 function createTranHTML(obj = {}) {
-  return `<div class="trans-item" id="${obj?.id}">
+  const isIncome = obj?.type === "income";
+  const sign = isIncome ? "+" : "-";
+  return `<div class="trans-item${isIncome ? " trans-income" : ""}" id="${obj?.id}">
   <div>
-      <h4>-<span name="currency"></span>${obj?.amount}</h4>
+      <h4>${sign}<span name="currency"></span>${obj?.amount}</h4>
       <div class="tranTagContainer">
         <p>${obj?.tag}</p>
         <p class="trans-date">${new Date(obj?.time).toLocaleString()}</p>
@@ -141,42 +180,41 @@ function createTranHTML(obj = {}) {
   </div>
   <p class="trans-date">${new Date(obj?.time).toLocaleString()}</p>
   <div class="trans-item-btn">
-      <button id="transEdit" aria-label="Edit expense"><i class="fa-regular fa-pen-to-square" aria-hidden="true"></i></button>
-      <button id="transDelete" aria-label="Delete expense"><i class="fa-regular fa-trash-can" aria-hidden="true"></i></button>
+      <button class="trans-edit" aria-label="Edit transaction"><i class="fa-regular fa-pen-to-square" aria-hidden="true"></i></button>
+      <button class="trans-delete" aria-label="Delete transaction"><i class="fa-regular fa-trash-can" aria-hidden="true"></i></button>
   </div>
   </div>`;
 }
 
-localStorage.saveTag("Manik👨‍💻");
-localStorage.saveTag("Misc.");    // Default for transactions without a tag
+localStorage.saveDefaultTags();
+localStorage.saveDefaultIncomeTags();
 
-function createTagHTML(str) {
-  return `
-  <input type="radio" id="${str}" name="expFor" value="${str}">
-  <label for="${str}">${str}</label>
-  `;
+function createTagElements(str, index) {
+  const id = `tag-${currentTagType}-${index}`;
+  const input = document.createElement("input");
+  input.type = "radio";
+  input.id = id;
+  input.name = "expFor";
+  input.value = str;
+
+  const label = document.createElement("label");
+  label.htmlFor = id;
+  label.textContent = str;
+
+  const elements = document.createDocumentFragment();
+  elements.append(input, label);
+  return elements;
 }
 
-function renderTags() {
+function renderTags(tagArray = localStorage.getAllTags()) {
   tagContainer.innerHTML = ``;
-  const tagArray = localStorage.getAllTags();
   if (tagArray == []) {
     return;
   } else {
-    tagArray.forEach((tag) => {
-      const tagEle = createTagHTML(tag);
-      tagContainer.insertAdjacentHTML("afterbegin", tagEle);
+    tagArray.forEach((tag, index) => {
+      tagContainer.prepend(createTagElements(tag, index));
     });
   }
-  allOptionLabel = document.querySelectorAll(".exp-for label");
-  allOptionLabel.forEach((label) => {
-    label.addEventListener("click", () => {
-      allOptionLabel.forEach((label) => {
-        label.style.backgroundColor = colors.lightBlue;
-      });
-      label.style.backgroundColor = colors.yellow;
-    });
-  });
 }
 
 renderTags();
@@ -187,17 +225,22 @@ function addNewTag() {
     showInfo(addAmountCardInfo, "Please enter a tag.");
     return;
   }
-  if (
-    localStorage
-      .getAllTags()
-      .some((tag) => tag.toLowerCase() === tagValue.toLowerCase())
-  ) {
+  const isIncomeTag = currentTagType === "income";
+  const allTags = isIncomeTag
+    ? localStorage.getAllIncomeTags()
+    : localStorage.getAllTags();
+  if (allTags.some((tag) => tag.toLowerCase() === tagValue.toLowerCase())) {
     showInfo(addAmountCardInfo, "Tag already exists.");
     return;
   }
 
-  localStorage.saveTag(tagValue);
-  renderTags();
+  if (isIncomeTag) {
+    localStorage.saveIncomeTag(tagValue);
+    renderTags(localStorage.getAllIncomeTags());
+  } else {
+    localStorage.saveTag(tagValue);
+    renderTags();
+  }
   tagInputField.value = "";
   tagInputEle.classList.remove("show");
   hideInfo(addAmountCardInfo);
@@ -219,29 +262,39 @@ function renderTransHistory(transArr = []) {
 renderTransHistory(localStorage.getAllTrans());
 
 function updateChart() {
+  chartContainerEle.classList.toggle(
+    "chart-empty-state",
+    getChartState(totalExpData, totalBudgetLeftData).empty
+  );
   if (!expenseChart) {
     return;
   }
 
-  expenseChart.data.datasets[0].data = [
-    totalExpData,
-    totalBudgetLeftData >= 0 ? totalBudgetLeftData : 0,
-  ];
+  const { data, empty } = getChartState(totalExpData, totalBudgetLeftData);
+  expenseChart.data.labels = empty ? ["No data"] : ["Expense", "Budget Left"];
+  expenseChart.data.datasets[0].data = data;
+  expenseChart.data.datasets[0].backgroundColor = empty
+    ? ["#d8d8d8"]
+    : [colors.red, colors.green];
+  chartEmptyEle.classList.toggle("chart-empty-visible", empty);
   expenseChart.update();
 }
 
 function showChart() {
+  chartContainerEle.classList.toggle(
+    "chart-empty-state",
+    getChartState(totalExpData, totalBudgetLeftData).empty
+  );
+  const { data, empty } = getChartState(totalExpData, totalBudgetLeftData);
+  chartEmptyEle.classList.toggle("chart-empty-visible", empty);
   expenseChart = new Chart(ctx, {
     type: "pie",
     data: {
-      labels: ["Expense", "Budget Left"],
+      labels: empty ? ["No data"] : ["Expense", "Budget Left"],
       datasets: [
         {
-          data: [
-            totalExpData,
-            totalBudgetLeftData >= 0 ? totalBudgetLeftData : 0,
-          ],
-          backgroundColor: [colors.red, colors.green],
+          data,
+          backgroundColor: empty ? ["#d8d8d8"] : [colors.red, colors.green],
           borderWidth: 0,
         },
       ],
@@ -282,9 +335,15 @@ function addTransItem() {
     return;
   }
 
+  const amount = parseAmount(amountEle.value);
+  if (amount === null) {
+    showInfo(addAmountCardInfo, `Amount must not exceed ${MAX_AMOUNT.toLocaleString("en-US")}.`);
+    return;
+  }
+
   const transObj = {
     id: Math.floor(Math.random() * 10000000),
-    amount: Number(amountEle.value),
+    amount,
     tag: checkedTagValue,
     time: new Date().toISOString(),
   };
@@ -297,8 +356,6 @@ function addTransItem() {
   amountEle.value = "";
   if (checkedTag) {
     checkedTag.checked = false;
-    const checkedLabel = document.querySelector(`[for="${checkedTag.id}"]`);
-    checkedLabel.style.backgroundColor = colors.lightBlue;
   }
 }
 
@@ -307,24 +364,33 @@ function clearInputForm() {
   Array.from(document.querySelectorAll('[name="expFor"]')).forEach((input) => {
     input.checked = false;
   });
-  document.querySelectorAll(".tags-container label").forEach((label) => {
-    label.style.backgroundColor = `${colors.lightBlue}`;
-  });
   hideInfo(addAmountCardInfo);
 }
 
 function addTranBtnEvent() {
   document.querySelectorAll(".trans-item").forEach((item) => {
-    item.lastElementChild.lastElementChild.addEventListener("click", () => {
-      const sure = window.confirm("Are you sure you want to delete this expense?");
+    item.querySelector(".trans-delete").addEventListener("click", () => {
+      const tranObj = localStorage.findTran(item.id);
+      const sure = window.confirm("Are you sure you want to delete this transaction?");
       if (sure) {
+        if (tranObj?.type === "income") {
+          const totalBudget = updateBudgetForIncome(
+            localStorage.getTotalBudget(),
+            tranObj.amount,
+            0
+          );
+          if (totalBudget === null) {
+            return;
+          }
+          localStorage.setTotalBudget(totalBudget);
+        }
         localStorage.deleteTrans(item.id);
         renderTransHistory(localStorage.getAllTrans());
         addTranBtnEvent();
         totalCalculate();
       }
     });
-    item.lastElementChild.firstElementChild.addEventListener("click", () => {
+    item.querySelector(".trans-edit").addEventListener("click", () => {
       const tranObj = localStorage.findTran(item.id);
       editAmountEle.value = "";
       editTagEle.value = "";
@@ -348,9 +414,29 @@ function editTran() {
     return;
   }
 
+  const amount = parseAmount(editAmountEle.value);
+  if (amount === null) {
+    showInfo(editCardInfo, `Amount must not exceed ${MAX_AMOUNT.toLocaleString("en-US")}.`);
+    return;
+  }
+
+  const previousTran = localStorage.findTran(editCardEle.id);
+  if (previousTran?.type === "income") {
+    const totalBudget = updateBudgetForIncome(
+      localStorage.getTotalBudget(),
+      previousTran.amount,
+      amount
+    );
+    if (totalBudget === null) {
+      showInfo(editCardInfo, `Total budget must not exceed ${MAX_AMOUNT.toLocaleString("en-US")}.`);
+      return;
+    }
+    localStorage.setTotalBudget(totalBudget);
+  }
+
   const transObj = {
     id: Number(editCardEle.id),
-    amount: Number(editAmountEle.value),
+    amount,
     tag: tagValue,
   };
   localStorage.saveTrans(transObj);
@@ -359,7 +445,10 @@ function editTran() {
   totalCalculate();
   editAmountEle.value = "";
   editTagEle.value = "";
-  showSuccess(editCardInfo, "Expense updated.");
+  showSuccess(
+    editCardInfo,
+    previousTran?.type === "income" ? "Income updated." : "Expense updated."
+  );
   setTimeout(() => {
     editCardEle.style.display = "none";
     hideInfo(editCardInfo);
@@ -420,7 +509,7 @@ closeEditCardBtn.addEventListener("click", () => {
   hideInfo(editCardInfo);
 });
 editTranBtn.addEventListener("click", editTran);
-addBudBtnEle.addEventListener("click", showBudgetInput);
+addIncomeBtnEle.addEventListener("click", showIncomeInput);
 addExpBtnEle.addEventListener("click", showExpInput);
 addBtnEle.addEventListener("click", addTransItem);
 clearBtnEle.addEventListener("click", clearInputForm);

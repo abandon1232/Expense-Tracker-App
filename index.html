@@ -16,7 +16,7 @@
 
 <body>
     <!-- edit trans item form -->
-    <div id="" class="edit-money-card">
+    <div class="edit-money-card">
         <div class="add-type">
             <p>Edit Expense</p>
             <button id="closeEdit" aria-label="Close edit form">
@@ -44,8 +44,8 @@
     <button class="mobile-add-btn" aria-label="Show expense form"><i class="fa-solid fa-plus" aria-hidden="true"></i></button>
     <div class="main">
         <div class="greeting">
-            <p>Hi <h1>User,</h1>
-            </p>
+            <p>Hi</p>
+            <h1>User,</h1>
         </div>
 
         <!---------------------------- left section starts here  -------------------------->
@@ -77,6 +77,7 @@
                     </div>
                     <div class="chart-container">
                         <canvas id="myChart"></canvas>
+                        <p class="chart-empty">No data</p>
                     </div>
                 </div>
 
@@ -106,7 +107,7 @@
 
                 <div class="add-type">
                     <button class="add-exp-btn selected-add-exp">Add Expense</button>
-                    <button class="add-bud-btn">Change Budget</button>
+                    <button class="add-income-btn">Add Income</button>
                 </div>
 
                 <div class="form-container">
@@ -117,7 +118,7 @@
                     </div>
 
                     <div class="exp-for">
-                        <div class="tags-container">
+                        <div class="tags-container" role="radiogroup" aria-label="Transaction tag">
                             <input type="radio" id="shopping" name="expFor" value="Shopping🛍️">
                             <label for="shopping">Shopping🛍️</label>
                             <input type="radio" id="food" name="expFor" value="Food😋">
