@@ -1,6 +1,7 @@
 import localStorage from "./localStorage.js";
 import {
   MAX_AMOUNT,
+  getBudgetLeft,
   getExpenseTotal,
   getChartState,
   parseAmount,
@@ -109,7 +110,7 @@ function totalCalculate() {
   const total = getExpenseTotal(allTrans);
   totalExpEle.textContent = `${total}`;
   const totalBudget = parseAmount(localStorage.getTotalBudget()) ?? 0;
-  const leftBudget = totalBudget - total;
+  const leftBudget = getBudgetLeft(totalBudget, total);
   totalExpData = total;
   totalBudgetLeftData = leftBudget;
   budgetLeftEle.textContent = `${leftBudget}`;

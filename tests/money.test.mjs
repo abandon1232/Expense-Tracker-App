@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import {
   MAX_AMOUNT,
+  getBudgetLeft,
   getExpenseTotal,
   getChartState,
   parseAmount,
@@ -19,6 +20,16 @@ test("income changes the budget without exceeding the supported maximum", () => 
   assert.equal(updateBudgetForIncome(700, 200, 300), 800);
   assert.equal(updateBudgetForIncome(700, 200, 0), 500);
   assert.equal(updateBudgetForIncome(900000000, 0, 200000000), null);
+});
+
+test("monetary calculations are rounded to cents", () => {
+  assert.equal(parseAmount("0.105"), 0.11);
+  assert.equal(updateBudgetForIncome(0.1, 0, 0.2), 0.3);
+  assert.equal(
+    getExpenseTotal([{ amount: 0.1 }, { amount: 0.2 }]),
+    0.3
+  );
+  assert.equal(getBudgetLeft(1, 0.3), 0.7);
 });
 
 test("income records are not counted as expenses", () => {
