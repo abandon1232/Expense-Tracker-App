@@ -1,9 +1,12 @@
 import localStorage from "./localStorage.js";
 import {
+  createExpenseChart,
+  updateExpenseChart,
+} from "./chart.js";
+import {
   MAX_AMOUNT,
   getBudgetLeft,
   getExpenseTotal,
-  getChartState,
   parseAmount,
   updateBudgetForIncome,
 } from "./money.js";
@@ -11,11 +14,6 @@ import {
 import currencies from "./currencies.js";
 // ---------------------------all data here ------------------------
 
-
-const colors = {
-  red: "#F38181",
-  green: "#297054b0",
-};
 
 let totalExpData, totalBudgetLeftData;
 let expenseChart;
@@ -320,53 +318,27 @@ function renderTransHistory(transArr = []) {
 renderTransHistory(localStorage.getAllTrans());
 
 function updateChart() {
-  chartContainerEle.classList.toggle(
-    "chart-empty-state",
-    getChartState(totalExpData, totalBudgetLeftData).empty
-  );
   if (!expenseChart) {
     return;
   }
 
-  const { data, empty } = getChartState(totalExpData, totalBudgetLeftData);
-  expenseChart.data.labels = empty ? ["No data"] : ["Expense", "Budget Left"];
-  expenseChart.data.datasets[0].data = data;
-  expenseChart.data.datasets[0].backgroundColor = empty
-    ? ["#d8d8d8"]
-    : [colors.red, colors.green];
-  chartEmptyEle.classList.toggle("chart-empty-visible", empty);
-  expenseChart.update();
+  updateExpenseChart(
+    expenseChart,
+    chartContainerEle,
+    chartEmptyEle,
+    totalExpData,
+    totalBudgetLeftData
+  );
 }
 
 function showChart() {
-  chartContainerEle.classList.toggle(
-    "chart-empty-state",
-    getChartState(totalExpData, totalBudgetLeftData).empty
+  expenseChart = createExpenseChart(
+    ctx,
+    chartContainerEle,
+    chartEmptyEle,
+    totalExpData,
+    totalBudgetLeftData
   );
-  const { data, empty } = getChartState(totalExpData, totalBudgetLeftData);
-  chartEmptyEle.classList.toggle("chart-empty-visible", empty);
-  expenseChart = new Chart(ctx, {
-    type: "pie",
-    data: {
-      labels: empty ? ["No data"] : ["Expense", "Budget Left"],
-      datasets: [
-        {
-          data,
-          backgroundColor: empty ? ["#d8d8d8"] : [colors.red, colors.green],
-          borderWidth: 0,
-        },
-      ],
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: {
-          display: false,
-        },
-      },
-    },
-  });
 }
 
 function findCheckedTag(arr) {
