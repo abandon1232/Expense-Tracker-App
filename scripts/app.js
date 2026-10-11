@@ -1,8 +1,13 @@
 import localStorage from "./localStorage.js";
 import {
+  createExpenseChart,
+  updateExpenseChart,
+} from "./chart.js";
+import { renderTransactionHistory } from "./transactions.js";
+import {
   MAX_AMOUNT,
+  getBudgetLeft,
   getExpenseTotal,
-  getChartState,
   parseAmount,
   updateBudgetForIncome,
 } from "./money.js";
@@ -10,11 +15,6 @@ import {
 import currencies from "./currencies.js";
 // ---------------------------all data here ------------------------
 
-
-const colors = {
-  red: "#F38181",
-  green: "#297054b0",
-};
 
 let totalExpData, totalBudgetLeftData;
 let expenseChart;
@@ -48,6 +48,7 @@ const expForEle = document.querySelectorAll('[name="expFor"]');
 const transHistoryParentEle = document.querySelector(
   ".money-history-container"
 );
+const historyEmptyEle = document.querySelector(".history-empty");
 const mobileAddScreenShowBtn = document.querySelector(".mobile-add-btn");
 const moneyAddCardEle = document.querySelector(".add-money-card");
 const addNewTagBtnEle = document.getElementById("addTagBtn");
@@ -91,6 +92,15 @@ function changeCurrency(){
 
 }
 
+function renderHistory(transactions) {
+  renderTransactionHistory(
+    transactions,
+    transHistoryParentEle,
+    historyEmptyEle,
+    changeCurrency
+  );
+}
+
 function insertCurrencyDropdownMenuHTML(){
   let menuHTML = "";
 
@@ -109,7 +119,7 @@ function totalCalculate() {
   const total = getExpenseTotal(allTrans);
   totalExpEle.textContent = `${total}`;
   const totalBudget = parseAmount(localStorage.getTotalBudget()) ?? 0;
-  const leftBudget = totalBudget - total;
+  const leftBudget = getBudgetLeft(totalBudget, total);
   totalExpData = total;
   totalBudgetLeftData = leftBudget;
   budgetLeftEle.textContent = `${leftBudget}`;
@@ -172,7 +182,7 @@ function addIncomeItem() {
 
   localStorage.setTotalBudget(totalBudget);
   localStorage.saveTrans(transObj);
-  renderTransHistory(localStorage.getAllTrans());
+  renderHistory(localStorage.getAllTrans());
   addTranBtnEvent();
   totalCalculate();
   clearInputForm();
@@ -205,25 +215,6 @@ const showExpInput = () => {
   addBtnEle.removeEventListener("click", addIncomeItem);
   addBtnEle.addEventListener("click", addTransItem);
 };
-
-function createTranHTML(obj = {}) {
-  const isIncome = obj?.type === "income";
-  const sign = isIncome ? "+" : "-";
-  return `<div class="trans-item${isIncome ? " trans-income" : ""}" id="${obj?.id}">
-  <div>
-      <h4>${sign}<span name="currency"></span>${obj?.amount}</h4>
-      <div class="tranTagContainer">
-        <p>${obj?.tag}</p>
-        <p class="trans-date">${new Date(obj?.time).toLocaleString()}</p>
-      </div>
-  </div>
-  <p class="trans-date">${new Date(obj?.time).toLocaleString()}</p>
-  <div class="trans-item-btn">
-      <button class="trans-edit" aria-label="Edit transaction"><i class="fa-regular fa-pen-to-square" aria-hidden="true"></i></button>
-      <button class="trans-delete" aria-label="Delete transaction"><i class="fa-regular fa-trash-can" aria-hidden="true"></i></button>
-  </div>
-  </div>`;
-}
 
 localStorage.saveDefaultTags();
 localStorage.saveDefaultIncomeTags();
@@ -297,69 +288,30 @@ function addNewTag() {
   hideInfo(addAmountCardInfo);
 }
 
-function renderTransHistory(transArr = []) {
-  transHistoryParentEle.innerHTML = "";
-  if (transArr == []) {
-    return;
-  } else {
-    transArr.forEach((transObj) => {
-      const transEle = createTranHTML(transObj);
-      transHistoryParentEle.insertAdjacentHTML("beforeend", transEle);
-    });
-  }
-  changeCurrency();
-}
-
-renderTransHistory(localStorage.getAllTrans());
+renderHistory(localStorage.getAllTrans());
 
 function updateChart() {
-  chartContainerEle.classList.toggle(
-    "chart-empty-state",
-    getChartState(totalExpData, totalBudgetLeftData).empty
-  );
   if (!expenseChart) {
     return;
   }
 
-  const { data, empty } = getChartState(totalExpData, totalBudgetLeftData);
-  expenseChart.data.labels = empty ? ["No data"] : ["Expense", "Budget Left"];
-  expenseChart.data.datasets[0].data = data;
-  expenseChart.data.datasets[0].backgroundColor = empty
-    ? ["#d8d8d8"]
-    : [colors.red, colors.green];
-  chartEmptyEle.classList.toggle("chart-empty-visible", empty);
-  expenseChart.update();
+  updateExpenseChart(
+    expenseChart,
+    chartContainerEle,
+    chartEmptyEle,
+    totalExpData,
+    totalBudgetLeftData
+  );
 }
 
 function showChart() {
-  chartContainerEle.classList.toggle(
-    "chart-empty-state",
-    getChartState(totalExpData, totalBudgetLeftData).empty
+  expenseChart = createExpenseChart(
+    ctx,
+    chartContainerEle,
+    chartEmptyEle,
+    totalExpData,
+    totalBudgetLeftData
   );
-  const { data, empty } = getChartState(totalExpData, totalBudgetLeftData);
-  chartEmptyEle.classList.toggle("chart-empty-visible", empty);
-  expenseChart = new Chart(ctx, {
-    type: "pie",
-    data: {
-      labels: empty ? ["No data"] : ["Expense", "Budget Left"],
-      datasets: [
-        {
-          data,
-          backgroundColor: empty ? ["#d8d8d8"] : [colors.red, colors.green],
-          borderWidth: 0,
-        },
-      ],
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: {
-          display: false,
-        },
-      },
-    },
-  });
 }
 
 function findCheckedTag(arr) {
@@ -399,7 +351,7 @@ function addTransItem() {
     time: new Date().toISOString(),
   };
   localStorage.saveTrans(transObj);
-  renderTransHistory(localStorage.getAllTrans());
+  renderHistory(localStorage.getAllTrans());
   addTranBtnEvent();
   totalCalculate();
   showSuccess(addAmountCardInfo, "Expense added.");
@@ -436,7 +388,7 @@ function addTranBtnEvent() {
           localStorage.setTotalBudget(totalBudget);
         }
         localStorage.deleteTrans(item.id);
-        renderTransHistory(localStorage.getAllTrans());
+        renderHistory(localStorage.getAllTrans());
         addTranBtnEvent();
         totalCalculate();
       }
@@ -491,7 +443,7 @@ function editTran() {
     tag: tagValue,
   };
   localStorage.saveTrans(transObj);
-  renderTransHistory(localStorage.getAllTrans());
+  renderHistory(localStorage.getAllTrans());
   addTranBtnEvent();
   totalCalculate();
   editAmountEle.value = "";
@@ -537,15 +489,15 @@ function sortTrans(e) {
   const sortType = e.target.value;
   switch (sortType) {
     case "highToLow":
-      renderTransHistory(sortTransHelper(localStorage.getAllTrans(), 1));
+      renderHistory(sortTransHelper(localStorage.getAllTrans(), 1));
       addTranBtnEvent();
       break;
     case "lowToHigh":
-      renderTransHistory(sortTransHelper(localStorage.getAllTrans(), -1));
+      renderHistory(sortTransHelper(localStorage.getAllTrans(), -1));
       addTranBtnEvent();
       break;
     default:
-      renderTransHistory(localStorage.getAllTrans());
+      renderHistory(localStorage.getAllTrans());
       addTranBtnEvent();
       break;
   }

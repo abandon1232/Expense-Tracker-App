@@ -1,9 +1,22 @@
 export const MAX_AMOUNT = 999999999.99;
 
+function toCents(amount) {
+  return Math.round(amount * 100);
+}
+
+function fromCents(cents) {
+  return cents / 100;
+}
+
 export function parseAmount(value) {
   const amount = Number(value);
-  return Number.isFinite(amount) && amount > 0 && amount <= MAX_AMOUNT
-    ? amount
+  if (!Number.isFinite(amount) || amount <= 0) {
+    return null;
+  }
+
+  const cents = toCents(amount);
+  return cents > 0 && cents <= toCents(MAX_AMOUNT)
+    ? fromCents(cents)
     : null;
 }
 
@@ -22,19 +35,34 @@ export function updateBudgetForIncome(currentBudget, previousAmount, nextAmount)
     return null;
   }
 
-  const total = current - previous + next;
+  const totalCents = toCents(current) - toCents(previous) + toCents(next);
 
-  return total >= 0 && total <= MAX_AMOUNT ? total : null;
+  return totalCents >= 0 && totalCents <= toCents(MAX_AMOUNT)
+    ? fromCents(totalCents)
+    : null;
 }
 
 export function getExpenseTotal(transactions = []) {
-  return transactions.reduce((total, transaction) => {
+  const totalCents = transactions.reduce((total, transaction) => {
     if (transaction?.type === "income") {
       return total;
     }
 
-    return total + (parseAmount(transaction?.amount) ?? 0);
+    const amount = parseAmount(transaction?.amount);
+    return total + (amount === null ? 0 : toCents(amount));
   }, 0);
+
+  return fromCents(totalCents);
+}
+
+export function getBudgetLeft(totalBudget, totalExpense) {
+  const budget = Number(totalBudget);
+  const expense = Number(totalExpense);
+  if (!Number.isFinite(budget) || !Number.isFinite(expense)) {
+    return null;
+  }
+
+  return fromCents(toCents(budget) - toCents(expense));
 }
 
 export function getChartState(expense, budgetLeft) {
