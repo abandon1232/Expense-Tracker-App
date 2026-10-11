@@ -7,7 +7,9 @@ import {
   updateBudgetForIncome,
 } from "./money.js";
 
+import currencies from "./currencies.js";
 // ---------------------------all data here ------------------------
+
 
 const colors = {
   red: "#F38181",
@@ -18,20 +20,20 @@ let totalExpData, totalBudgetLeftData;
 let expenseChart;
 let currentTagType = "expense";
 
+//  currencyList[new_currency_id][0] is the symbol in string format
+//  currencyList[new_currency_id][1] is the location information (L/R)
+let currencyList = currencies.getCurrencyList();
+
 // ---------------------------------reference of html element here---------------------------
 const ctx = document.getElementById("myChart");
 const chartEmptyEle = document.querySelector(".chart-empty");
 const chartContainerEle = document.querySelector(".chart-container");
 const budgetLeftEle = document.getElementById("budgetLeft");
 
-const currencyEles = document.getElementsByName("currency");
+// Currency Elements
+const L_currencyEles = document.getElementsByName("L_currency");
+const R_currencyEles = document.getElementsByName("R_currency");
 const currencySelectorEle = document.getElementById("currencySelector");
-function changeCurrency(){
-  for (const currencyEle of currencyEles) {
-    currencyEle.textContent = currencySelectorEle.value;
-  }
-  localStorage.saveCurrency(currencySelectorEle.value);
-}
 
 const totalBudgetEle = document.getElementById("totalBudget");
 const totalExpEle = document.getElementById("totalExp");
@@ -63,6 +65,43 @@ const editCardInfo = document.querySelector(".edit-money-card .info");
 
 // -----------------------------code logic here --------------------------------
 
+function changeCurrency(){
+
+  let new_currency_id = Number(currencySelectorEle.value);  // ID of currency
+  let location = currencyList[new_currency_id][1];          // L or R
+
+  // Go through left-side currency spans
+  for (const currencyEle of L_currencyEles) {
+    if(location == 'L')
+      currencyEle.textContent = currencyList[new_currency_id][0];
+    else
+      currencyEle.textContent = "";
+  }
+
+  // Go through right-side currency spans
+  for (const currencyEle of R_currencyEles) {
+    if(location == 'R')
+      currencyEle.textContent = currencyList[new_currency_id][0];
+    else
+      currencyEle.textContent = "";
+  }
+
+  // Save Currency
+  localStorage.saveCurrency(new_currency_id.toString());
+
+}
+
+function insertCurrencyDropdownMenuHTML(){
+  let menuHTML = "";
+
+  for(let i = 0; i < currencyList.length; i++)
+    menuHTML += `<option value=\"${i}\">${currencyList[i][0]}</option>\n`
+
+  currencySelectorEle.innerHTML = "";
+  currencySelectorEle.insertAdjacentHTML("beforeend", menuHTML);
+}
+
+insertCurrencyDropdownMenuHTML();
 currencySelectorEle.value = localStorage.loadCurrency();
 
 function totalCalculate() {
@@ -219,8 +258,20 @@ function renderTags(tagArray = localStorage.getAllTags()) {
 
 renderTags();
 
+function sanitizeTag(tag) {
+  const forbiddenChars = /[`!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~]/;
+  let sanitizedTag = "";
+
+  for (let i = 0; i < tag.length; i++) {
+    if(forbiddenChars.test(tag[i])) continue;
+    sanitizedTag += tag[i];
+  }
+
+  return sanitizedTag;
+}
+
 function addNewTag() {
-  const tagValue = tagInputField.value.trim();
+  const tagValue = sanitizeTag(tagInputField.value.trim());
   if (!tagValue) {
     showInfo(addAmountCardInfo, "Please enter a tag.");
     return;

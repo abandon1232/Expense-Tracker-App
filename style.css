@@ -229,7 +229,6 @@ select:focus-visible {
     color: #424242;
 }
 
-
 /* total amounts section  */
 
 .budg-exp-container {
@@ -454,6 +453,7 @@ select:focus {
     border: 1px solid #aeaeae;
     border-radius: 15px;
     outline-color: var(--blue);
+    overflow-y: scroll;
 }
 
 .right-container .money-history-container {
