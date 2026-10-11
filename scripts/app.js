@@ -3,6 +3,7 @@ import {
   createExpenseChart,
   updateExpenseChart,
 } from "./chart.js";
+import { renderTransactionHistory } from "./transactions.js";
 import {
   MAX_AMOUNT,
   getBudgetLeft,
@@ -91,6 +92,15 @@ function changeCurrency(){
 
 }
 
+function renderHistory(transactions) {
+  renderTransactionHistory(
+    transactions,
+    transHistoryParentEle,
+    historyEmptyEle,
+    changeCurrency
+  );
+}
+
 function insertCurrencyDropdownMenuHTML(){
   let menuHTML = "";
 
@@ -172,7 +182,7 @@ function addIncomeItem() {
 
   localStorage.setTotalBudget(totalBudget);
   localStorage.saveTrans(transObj);
-  renderTransHistory(localStorage.getAllTrans());
+  renderHistory(localStorage.getAllTrans());
   addTranBtnEvent();
   totalCalculate();
   clearInputForm();
@@ -205,25 +215,6 @@ const showExpInput = () => {
   addBtnEle.removeEventListener("click", addIncomeItem);
   addBtnEle.addEventListener("click", addTransItem);
 };
-
-function createTranHTML(obj = {}) {
-  const isIncome = obj?.type === "income";
-  const sign = isIncome ? "+" : "-";
-  return `<div class="trans-item${isIncome ? " trans-income" : ""}" id="${obj?.id}">
-  <div>
-      <h4>${sign}<span name="currency"></span>${obj?.amount}</h4>
-      <div class="tranTagContainer">
-        <p>${obj?.tag}</p>
-        <p class="trans-date">${new Date(obj?.time).toLocaleString()}</p>
-      </div>
-  </div>
-  <p class="trans-date">${new Date(obj?.time).toLocaleString()}</p>
-  <div class="trans-item-btn">
-      <button class="trans-edit" aria-label="Edit transaction"><i class="fa-regular fa-pen-to-square" aria-hidden="true"></i></button>
-      <button class="trans-delete" aria-label="Delete transaction"><i class="fa-regular fa-trash-can" aria-hidden="true"></i></button>
-  </div>
-  </div>`;
-}
 
 localStorage.saveDefaultTags();
 localStorage.saveDefaultIncomeTags();
@@ -297,25 +288,7 @@ function addNewTag() {
   hideInfo(addAmountCardInfo);
 }
 
-function renderTransHistory(transArr = []) {
-  transHistoryParentEle
-    .querySelectorAll(".trans-item")
-    .forEach((transEle) => transEle.remove());
-
-  if (transArr.length === 0) {
-    historyEmptyEle.hidden = false;
-    return;
-  }
-
-  historyEmptyEle.hidden = true;
-  transArr.forEach((transObj) => {
-    const transEle = createTranHTML(transObj);
-    transHistoryParentEle.insertAdjacentHTML("beforeend", transEle);
-  });
-  changeCurrency();
-}
-
-renderTransHistory(localStorage.getAllTrans());
+renderHistory(localStorage.getAllTrans());
 
 function updateChart() {
   if (!expenseChart) {
@@ -378,7 +351,7 @@ function addTransItem() {
     time: new Date().toISOString(),
   };
   localStorage.saveTrans(transObj);
-  renderTransHistory(localStorage.getAllTrans());
+  renderHistory(localStorage.getAllTrans());
   addTranBtnEvent();
   totalCalculate();
   showSuccess(addAmountCardInfo, "Expense added.");
@@ -415,7 +388,7 @@ function addTranBtnEvent() {
           localStorage.setTotalBudget(totalBudget);
         }
         localStorage.deleteTrans(item.id);
-        renderTransHistory(localStorage.getAllTrans());
+        renderHistory(localStorage.getAllTrans());
         addTranBtnEvent();
         totalCalculate();
       }
@@ -470,7 +443,7 @@ function editTran() {
     tag: tagValue,
   };
   localStorage.saveTrans(transObj);
-  renderTransHistory(localStorage.getAllTrans());
+  renderHistory(localStorage.getAllTrans());
   addTranBtnEvent();
   totalCalculate();
   editAmountEle.value = "";
@@ -516,15 +489,15 @@ function sortTrans(e) {
   const sortType = e.target.value;
   switch (sortType) {
     case "highToLow":
-      renderTransHistory(sortTransHelper(localStorage.getAllTrans(), 1));
+      renderHistory(sortTransHelper(localStorage.getAllTrans(), 1));
       addTranBtnEvent();
       break;
     case "lowToHigh":
-      renderTransHistory(sortTransHelper(localStorage.getAllTrans(), -1));
+      renderHistory(sortTransHelper(localStorage.getAllTrans(), -1));
       addTranBtnEvent();
       break;
     default:
-      renderTransHistory(localStorage.getAllTrans());
+      renderHistory(localStorage.getAllTrans());
       addTranBtnEvent();
       break;
   }

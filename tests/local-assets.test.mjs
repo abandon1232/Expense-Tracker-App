@@ -7,6 +7,10 @@ const require = createRequire(import.meta.url);
 const html = readFileSync(new URL("../index.html", import.meta.url), "utf8");
 const css = readFileSync(new URL("../style.css", import.meta.url), "utf8");
 const app = readFileSync(new URL("../scripts/app.js", import.meta.url), "utf8");
+const transactions = readFileSync(
+  new URL("../scripts/transactions.js", import.meta.url),
+  "utf8"
+);
 const storage = readFileSync(new URL("../scripts/localStorage.js", import.meta.url), "utf8");
 
 test("the application has no external runtime assets", () => {
@@ -60,7 +64,7 @@ test("local stylesheets only reference bundled font files", () => {
 
 test("local icons keep their accessible button structure", () => {
   assert.match(html, /<button class="mobile-add-btn" aria-label="[^"]+"><i class="fa-solid fa-plus" aria-hidden="true"><\/i><\/button>/);
-  assert.match(app, /<div class="trans-item-btn">\s*<button class="trans-edit" aria-label="Edit transaction"><i class="fa-regular fa-pen-to-square" aria-hidden="true"><\/i><\/button>\s*<button class="trans-delete" aria-label="Delete transaction"><i class="fa-regular fa-trash-can" aria-hidden="true"><\/i><\/button>/s);
+  assert.match(transactions, /<div class="trans-item-btn">\s*<button class="trans-edit" aria-label="Edit transaction"><i class="fa-regular fa-pen-to-square" aria-hidden="true"><\/i><\/button>\s*<button class="trans-delete" aria-label="Delete transaction"><i class="fa-regular fa-trash-can" aria-hidden="true"><\/i><\/button>/s);
 });
 
 test("empty states provide clear feedback for the chart and history", () => {
@@ -69,6 +73,6 @@ test("empty states provide clear feedback for the chart and history", () => {
     html,
     /<p class="history-empty" role="status">No expenses yet\. Add an expense to see it here\.<\/p>/
   );
-  assert.match(app, /historyEmptyEle\.hidden = false/);
-  assert.match(app, /historyEmptyEle\.hidden = true/);
+  assert.match(transactions, /emptyState\.hidden = false/);
+  assert.match(transactions, /emptyState\.hidden = true/);
 });
