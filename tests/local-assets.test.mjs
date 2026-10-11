@@ -62,3 +62,13 @@ test("local icons keep their accessible button structure", () => {
   assert.match(html, /<button class="mobile-add-btn" aria-label="[^"]+"><i class="fa-solid fa-plus" aria-hidden="true"><\/i><\/button>/);
   assert.match(app, /<div class="trans-item-btn">\s*<button class="trans-edit" aria-label="Edit transaction"><i class="fa-regular fa-pen-to-square" aria-hidden="true"><\/i><\/button>\s*<button class="trans-delete" aria-label="Delete transaction"><i class="fa-regular fa-trash-can" aria-hidden="true"><\/i><\/button>/s);
 });
+
+test("empty states provide clear feedback for the chart and history", () => {
+  assert.match(html, /<p class="chart-empty" role="status">No chart data available<\/p>/);
+  assert.match(
+    html,
+    /<p class="history-empty" role="status">No expenses yet\. Add an expense to see it here\.<\/p>/
+  );
+  assert.match(app, /historyEmptyEle\.hidden = false/);
+  assert.match(app, /historyEmptyEle\.hidden = true/);
+});

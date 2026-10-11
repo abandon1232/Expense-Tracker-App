@@ -49,6 +49,7 @@ const expForEle = document.querySelectorAll('[name="expFor"]');
 const transHistoryParentEle = document.querySelector(
   ".money-history-container"
 );
+const historyEmptyEle = document.querySelector(".history-empty");
 const mobileAddScreenShowBtn = document.querySelector(".mobile-add-btn");
 const moneyAddCardEle = document.querySelector(".add-money-card");
 const addNewTagBtnEle = document.getElementById("addTagBtn");
@@ -299,15 +300,20 @@ function addNewTag() {
 }
 
 function renderTransHistory(transArr = []) {
-  transHistoryParentEle.innerHTML = "";
-  if (transArr == []) {
+  transHistoryParentEle
+    .querySelectorAll(".trans-item")
+    .forEach((transEle) => transEle.remove());
+
+  if (transArr.length === 0) {
+    historyEmptyEle.hidden = false;
     return;
-  } else {
-    transArr.forEach((transObj) => {
-      const transEle = createTranHTML(transObj);
-      transHistoryParentEle.insertAdjacentHTML("beforeend", transEle);
-    });
   }
+
+  historyEmptyEle.hidden = true;
+  transArr.forEach((transObj) => {
+    const transEle = createTranHTML(transObj);
+    transHistoryParentEle.insertAdjacentHTML("beforeend", transEle);
+  });
   changeCurrency();
 }
 
